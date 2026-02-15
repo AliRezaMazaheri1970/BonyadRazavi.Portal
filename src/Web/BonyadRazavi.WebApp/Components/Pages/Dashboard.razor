@@ -1,4 +1,5 @@
 ﻿@page "/dashboard"
+@using Microsoft.AspNetCore.Components.Routing
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject UserSession UserSession
 @inject NavigationManager Navigation
@@ -24,23 +25,29 @@ else
                     <ul class="side-menu">
                         @foreach (var item in SidebarItems)
                         {
-                            <li>@item</li>
+                            <li class="p-1">
+                                <NavLink href="@item.Route" class="side-link" ActiveClass="active-link" style="color: #fff;text-decoration: none;">
+                                    @item.Title
+                                </NavLink>
+                            </li>
+
                         }
                     </ul>
                 </div>
 
                 <button class="side-exit" @onclick="SignOut">
-                    خروج
                     <span aria-hidden="true">↩</span>
+                    <span> خروج</span>
                 </button>
             </aside>
 
             <main class="dashboard-main">
                 <header class="user-strip">
-                    <p>نام کاربری</p>
+                    
                     <div class="user-avatar" title="@UserSession.Current.UserName">
                         @GetInitials(UserSession.Current.DisplayName)
                     </div>
+                    <p>نام کاربری</p>
                 </header>
 
                 <h1 class="welcome-title">به پرتال بنیاد علوم کاربردی رازی خوش آمدید</h1>
@@ -50,105 +57,20 @@ else
                 <div class="service-grid">
                     @foreach (var tile in DashboardTiles)
                     {
-                        <article class="service-card">
+                        <NavLink href="@tile.Route" class="service-card">
                             <img src="@tile.IconPath" alt="@tile.Title" class="service-icon" />
                             <h3>@tile.Title</h3>
-                        </article>
+                        </NavLink>
+
                     }
                 </div>
 
-                <footer class="today-strip">
+                @* <footer class="today-strip">
                     تاریخ امروز : @GetTodayPersianText()
-                </footer>
+                </footer> *@
             </main>
         </div>
     </section>
 }
 
-@code {
-    private static readonly DashboardTile[] DashboardTiles =
-    [
-        new("دریافت گزارش و صورتحساب", "Images/dashboard/reports.svg"),
-        new("پیگیری مرحله آزمایش", "Images/dashboard/lab.svg"),
-        new("اعلام هزینه", "Images/dashboard/cost.svg"),
-        new("شکایت", "Images/dashboard/complaint.svg"),
-        new("نظرسنجی", "Images/dashboard/survey.svg"),
-        new("وضعیت مالی", "Images/dashboard/finance.svg")
-    ];
 
-    private static readonly string[] SidebarItems =
-    [
-        "پذیرش آنلاین + هوش مصنوعی",
-        "اعلام هزینه",
-        "پیگیری مرحله آزمایش",
-        "دریافت گزارش و صورتحساب",
-        "وضعیت مالی",
-        "نظرسنجی",
-        "شکایت",
-        "ارسال اطلاعات",
-        "چت آنلاین",
-        "دسته بندی مشتریان و امتیازدهی براساس کارکرد",
-        "اطلاعات مازاد براساس آخرین گزارش",
-        "ارسال لینک یکبار مصرف توسط پیامک"
-    ];
-
-    protected override void OnInitialized()
-    {
-        if (!UserSession.IsAuthenticated)
-        {
-            Navigation.NavigateTo("/login");
-        }
-    }
-
-    private void SignOut()
-    {
-        UserSession.SignOut();
-        Navigation.NavigateTo("/login");
-    }
-
-    private void GoToLogin()
-    {
-        Navigation.NavigateTo("/login");
-    }
-
-    private static string GetInitials(string displayName)
-    {
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            return "BR";
-        }
-
-        var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 1)
-        {
-            return parts[0][..1];
-        }
-
-        return string.Concat(parts[0][..1], parts[^1][..1]);
-    }
-
-    private static string GetTodayPersianText()
-    {
-        var now = DateTime.Now;
-        var persian = new System.Globalization.PersianCalendar();
-
-        var dayName = now.DayOfWeek switch
-        {
-            DayOfWeek.Saturday => "شنبه",
-            DayOfWeek.Sunday => "یکشنبه",
-            DayOfWeek.Monday => "دوشنبه",
-            DayOfWeek.Tuesday => "سه شنبه",
-            DayOfWeek.Wednesday => "چهارشنبه",
-            DayOfWeek.Thursday => "پنجشنبه",
-            _ => "جمعه"
-        };
-
-        var day = persian.GetDayOfMonth(now);
-        var month = persian.GetMonth(now);
-        var year = persian.GetYear(now);
-
-        return $"{dayName} / {day:00} / {month:00} / {year}";
-    }
-
-    private sealed record DashboardTile(string Title, string IconPath);
-}
