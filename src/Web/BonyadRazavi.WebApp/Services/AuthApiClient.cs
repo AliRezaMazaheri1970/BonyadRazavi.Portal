@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using BonyadRazavi.Shared.Contracts.Auth;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BonyadRazavi.WebApp.Services;
 
@@ -32,6 +33,20 @@ public sealed class AuthApiClient
             return LoginApiResult.Succeeded(payload);
         }
 
-        return LoginApiResult.Failed("ورود ناموفق بود. لطفا اطلاعات را بررسی کنید.", (int)response.StatusCode);
+        ProblemDetails? problem = null;
+        try
+        {
+            problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
+        }
+        catch
+        {
+            // Ignore invalid problem-details payload and use default text.
+        }
+
+        var errorText = !string.IsNullOrWhiteSpace(problem?.Detail)
+            ? problem.Detail
+            : "ورود ناموفق بود. لطفا اطلاعات را بررسی کنید.";
+
+        return LoginApiResult.Failed($"{errorText} (HTTP {(int)response.StatusCode})", (int)response.StatusCode);
     }
 }

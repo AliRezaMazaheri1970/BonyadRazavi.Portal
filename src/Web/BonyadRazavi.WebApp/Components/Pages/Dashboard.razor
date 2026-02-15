@@ -1,5 +1,5 @@
 ﻿@page "/dashboard"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject UserSession UserSession
 @inject NavigationManager Navigation
 
@@ -15,37 +15,83 @@
 }
 else
 {
-    <section class="dashboard-shell">
-        <header class="dashboard-header">
-            <div>
-                <h1>خوش آمدید @UserSession.Current.DisplayName</h1>
-                <p>نام کاربری: @UserSession.Current.UserName</p>
-            </div>
-            <button class="dashboard-action" @onclick="SignOut">خروج</button>
-        </header>
+    <section class="portal-dashboard">
+        <div class="dashboard-frame">
+            <aside class="dashboard-side">
+                <div class="side-top">
+                    <img src="Images/logo-RASF1.png" class="side-logo" alt="لوگوی بنیاد" />
 
-        <div class="dashboard-grid">
-            <article class="dashboard-card">
-                <h2>وضعیت نشست</h2>
-                <p>شما با نقش‌های زیر وارد شده‌اید:</p>
-                <ul>
-                    @foreach (var role in UserSession.Current.Roles)
+                    <ul class="side-menu">
+                        @foreach (var item in SidebarItems)
+                        {
+                            <li>@item</li>
+                        }
+                    </ul>
+                </div>
+
+                <button class="side-exit" @onclick="SignOut">
+                    خروج
+                    <span aria-hidden="true">↩</span>
+                </button>
+            </aside>
+
+            <main class="dashboard-main">
+                <header class="user-strip">
+                    <p>نام کاربری</p>
+                    <div class="user-avatar" title="@UserSession.Current.UserName">
+                        @GetInitials(UserSession.Current.DisplayName)
+                    </div>
+                </header>
+
+                <h1 class="welcome-title">به پرتال بنیاد علوم کاربردی رازی خوش آمدید</h1>
+
+                <button class="chat-entry" type="button">ورود به بخش چت آنلاین</button>
+
+                <div class="service-grid">
+                    @foreach (var tile in DashboardTiles)
                     {
-                        <li>@role</li>
+                        <article class="service-card">
+                            <img src="@tile.IconPath" alt="@tile.Title" class="service-icon" />
+                            <h3>@tile.Title</h3>
+                        </article>
                     }
-                </ul>
-            </article>
+                </div>
 
-            <article class="dashboard-card">
-                <h2>انقضای توکن</h2>
-                <p>@UserSession.Current.ExpiresAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</p>
-                <small>این داده نمونه است و برای شروع معماری پروژه نمایش داده می‌شود.</small>
-            </article>
+                <footer class="today-strip">
+                    تاریخ امروز : @GetTodayPersianText()
+                </footer>
+            </main>
         </div>
     </section>
 }
 
 @code {
+    private static readonly DashboardTile[] DashboardTiles =
+    [
+        new("دریافت گزارش و صورتحساب", "Images/dashboard/reports.svg"),
+        new("پیگیری مرحله آزمایش", "Images/dashboard/lab.svg"),
+        new("اعلام هزینه", "Images/dashboard/cost.svg"),
+        new("شکایت", "Images/dashboard/complaint.svg"),
+        new("نظرسنجی", "Images/dashboard/survey.svg"),
+        new("وضعیت مالی", "Images/dashboard/finance.svg")
+    ];
+
+    private static readonly string[] SidebarItems =
+    [
+        "پذیرش آنلاین + هوش مصنوعی",
+        "اعلام هزینه",
+        "پیگیری مرحله آزمایش",
+        "دریافت گزارش و صورتحساب",
+        "وضعیت مالی",
+        "نظرسنجی",
+        "شکایت",
+        "ارسال اطلاعات",
+        "چت آنلاین",
+        "دسته بندی مشتریان و امتیازدهی براساس کارکرد",
+        "اطلاعات مازاد براساس آخرین گزارش",
+        "ارسال لینک یکبار مصرف توسط پیامک"
+    ];
+
     protected override void OnInitialized()
     {
         if (!UserSession.IsAuthenticated)
@@ -64,4 +110,45 @@ else
     {
         Navigation.NavigateTo("/login");
     }
+
+    private static string GetInitials(string displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return "BR";
+        }
+
+        var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+        {
+            return parts[0][..1];
+        }
+
+        return string.Concat(parts[0][..1], parts[^1][..1]);
+    }
+
+    private static string GetTodayPersianText()
+    {
+        var now = DateTime.Now;
+        var persian = new System.Globalization.PersianCalendar();
+
+        var dayName = now.DayOfWeek switch
+        {
+            DayOfWeek.Saturday => "شنبه",
+            DayOfWeek.Sunday => "یکشنبه",
+            DayOfWeek.Monday => "دوشنبه",
+            DayOfWeek.Tuesday => "سه شنبه",
+            DayOfWeek.Wednesday => "چهارشنبه",
+            DayOfWeek.Thursday => "پنجشنبه",
+            _ => "جمعه"
+        };
+
+        var day = persian.GetDayOfMonth(now);
+        var month = persian.GetMonth(now);
+        var year = persian.GetYear(now);
+
+        return $"{dayName} / {day:00} / {month:00} / {year}";
+    }
+
+    private sealed record DashboardTile(string Title, string IconPath);
 }

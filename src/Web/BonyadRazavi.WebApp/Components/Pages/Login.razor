@@ -1,6 +1,6 @@
 ﻿@page "/"
 @page "/login"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject AuthApiClient AuthApiClient
 @inject UserSession UserSession
 @inject NavigationManager Navigation
@@ -70,8 +70,8 @@
 
     private async Task OnSubmitAsync()
     {
-        _isSubmitting = true;
         _errorMessage = null;
+        _isSubmitting = true;
 
         try
         {
@@ -101,3 +101,4 @@
         }
     }
 }
+
