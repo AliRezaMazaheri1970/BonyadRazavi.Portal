@@ -7,9 +7,11 @@
 .dashboard-frame {
     min-height: calc(100vh - 0.44rem);
     display: flex;
-    gap: 1.45rem;
+    gap: 4.45rem;
     padding: 1.45rem;
     box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
 }
 
 .dashboard-side {
@@ -76,26 +78,27 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
+/*    align-items: center;*/
     color: #0f2f84;
+    max-width:70%;
 }
 
 .user-strip {
     display: flex;
     align-items: center;
-    justify-content: center;
+/*    justify-content: center;*/
     gap: 1rem;
     margin-top: 0.2rem;
 }
 
     .user-strip p {
         margin: 0;
-        font-size: 2.95rem;
+        font-size: 1.5rem;
     }
 
 .user-avatar {
-    width: 86px;
-    height: 86px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     border: 5px solid rgba(255, 255, 255, 0.8);
     background: radial-gradient(circle at 34% 22%, #8aa0f4, #1d38a3 78%);
@@ -110,12 +113,12 @@
     margin: 1.45rem 0;
     font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);
     font-weight: 500;
-    text-align: center;
+/*    text-align: center;*/
 }
 
 .chat-entry {
-    width: min(840px, 100%);
-    min-height: 124px;
+/*    width: min(840px, 100%);*/
+    min-height: 200px;
     border: 0;
     border-radius: 28px;
     color: #fff;
@@ -126,24 +129,25 @@
 }
 
 .service-grid {
-    width: min(840px, 100%);
+/*    width: min(840px, 100%);*/
     display: grid;
-    grid-template-columns: repeat(3, minmax(170px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(5, minmax(170px, 1fr));
+    gap: 3rem;
 }
 
-.service-card {
-    min-height: 196px;
-    background: #0f2f84;
-    border: 1px solid #bec8ee;
-    border-radius: 24px;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.38), 0 4px 10px rgba(16, 33, 95, 0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.7rem;
-}
+    .service-grid ::deep a.service-card {
+        min-height: 220px;
+        background: #c0c6fc;
+/*        border: 1px solid #eaeefe;*/
+        border-radius: 25px;
+        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.7rem;
+        text-decoration: none;
+    }
 
 .service-icon {
     width: 84px;
@@ -153,7 +157,7 @@
 .service-card h3 {
     margin: 0;
     text-align: center;
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: #132f7d;
     font-weight: 500;
 }
@@ -164,16 +168,17 @@
     border-radius: 0 25px 25px 0;
     background: #133184;
     color: #fff;
-    min-height: 74px;
+    min-height: 57px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 2.1rem;
+    justify-content: start;
+    font-size: 1.1rem;
     font-weight: 500;
     position: absolute;
     bottom: 25px;
     left: 0;
     text-align: right;
+    padding-right: 20px;
 }
 
 .dashboard-state {
