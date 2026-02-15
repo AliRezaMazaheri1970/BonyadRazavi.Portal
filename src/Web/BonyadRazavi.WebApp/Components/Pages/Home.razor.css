@@ -1,0 +1,217 @@
+.login-layout {
+    background: radial-gradient(circle at 15% 20%, rgba(142, 157, 255, 0.35), transparent 32%),
+        radial-gradient(circle at 92% 76%, rgba(65, 112, 255, 0.22), transparent 25%),
+        #f7f8ff;
+    display: grid;
+    grid-template-columns: minmax(350px, 1fr) minmax(420px, 1fr);
+    min-height: 100vh;
+}
+
+.brand-panel {
+    background: linear-gradient(168deg, #6e79dd 0%, #3749aa 62%, #0d267f 100%);
+    color: #fff;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.brand-panel::before,
+.brand-panel::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    opacity: 0.38;
+}
+
+.brand-panel::before {
+    width: 420px;
+    height: 420px;
+    top: -160px;
+    left: -120px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 70%);
+}
+
+.brand-panel::after {
+    width: 380px;
+    height: 380px;
+    bottom: -170px;
+    right: -80px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent 67%);
+}
+
+.brand-bg-orb {
+    position: absolute;
+    width: min(72vw, 520px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 72%);
+    filter: blur(8px);
+}
+
+.brand-content {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.brand-logo {
+    width: min(340px, 88%);
+    color: #f8f9ff;
+    filter: drop-shadow(0 8px 24px rgba(6, 17, 79, 0.45));
+}
+
+.brand-title {
+    margin-top: 0.25rem;
+    font-size: clamp(1.8rem, 1.6rem + 1vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.brand-subtitle {
+    margin-top: 0.7rem;
+    opacity: 0.9;
+    font-size: 1.02rem;
+}
+
+.form-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 2rem;
+}
+
+.login-card {
+    width: min(480px, 100%);
+}
+
+.login-card h1 {
+    color: #10204c;
+    font-size: clamp(1.8rem, 1.6rem + 0.6vw, 2.4rem);
+    font-weight: 700;
+    margin-bottom: 2.4rem;
+    text-align: right;
+}
+
+.field-block {
+    margin-bottom: 1rem;
+}
+
+.portal-input {
+    background: #ecefff;
+    border: 0;
+    border-radius: 999px;
+    color: #4f578f;
+    font-size: 1.35rem;
+    min-height: 68px;
+    padding: 0 1.6rem;
+    text-align: right;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    width: 100%;
+}
+
+.portal-input:focus {
+    box-shadow: 0 0 0 4px rgba(92, 126, 255, 0.25);
+    outline: 0;
+    transform: translateY(-1px);
+}
+
+.ghost-link {
+    background: transparent;
+    border: 0;
+    color: #14326f;
+    cursor: pointer;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0.7rem 0 2rem;
+    padding: 0;
+}
+
+.login-button {
+    border: 0;
+    border-radius: 999px;
+    color: #fff;
+    width: 100%;
+    font-size: 2rem;
+    font-weight: 500;
+    min-height: 74px;
+    background: linear-gradient(90deg, #10328d 0%, #6473da 100%);
+    box-shadow: 0 16px 28px rgba(20, 45, 126, 0.27);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+}
+
+.login-button:hover:enabled {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 34px rgba(20, 45, 126, 0.34);
+}
+
+.login-button:disabled {
+    cursor: wait;
+    opacity: 0.8;
+}
+
+.login-error {
+    color: #bf2d2d;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+.hint-text {
+    margin-top: 1rem;
+    color: #5b648b;
+    font-size: 0.92rem;
+}
+
+.hint-text span {
+    color: #173686;
+    font-weight: 700;
+}
+
+.validation-message {
+    display: block;
+    color: #b52020;
+    margin-top: 0.45rem;
+    margin-inline: 0.6rem;
+}
+
+@media (max-width: 1024px) {
+    .login-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .brand-panel {
+        min-height: 34vh;
+        padding: 2rem 1.5rem;
+    }
+
+    .brand-logo {
+        width: min(240px, 70%);
+    }
+
+    .brand-title {
+        font-size: 1.75rem;
+    }
+
+    .form-panel {
+        padding: 2rem 1.25rem 3rem;
+    }
+
+    .login-card h1 {
+        text-align: center;
+        margin-bottom: 1.8rem;
+        font-size: 1.8rem;
+    }
+
+    .portal-input {
+        min-height: 60px;
+        font-size: 1.15rem;
+    }
+
+    .login-button {
+        min-height: 62px;
+        font-size: 1.6rem;
+    }
+}

@@ -1,0 +1,12 @@
+@BonyadRazavi.Auth.Api_HostAddress = https://localhost:7115
+
+### Login
+POST {{BonyadRazavi.Auth.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "userName": "admin",
+  "password": "Razavi@1404"
+}
+
+###

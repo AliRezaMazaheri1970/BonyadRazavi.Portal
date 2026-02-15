@@ -1,0 +1,67 @@
+@page "/dashboard"
+@rendermode InteractiveServer
+@inject UserSession UserSession
+@inject NavigationManager Navigation
+
+<PageTitle>???????</PageTitle>
+
+@if (!UserSession.IsAuthenticated || UserSession.Current is null)
+{
+    <section class="dashboard-state">
+        <h1>???? ?????? ???? ????</h1>
+        <p>???? ?????? ??????? ????? ???? ?????? ????.</p>
+        <button class="dashboard-action" @onclick="GoToLogin">?????? ?? ???? ????</button>
+    </section>
+}
+else
+{
+    <section class="dashboard-shell">
+        <header class="dashboard-header">
+            <div>
+                <h1>??? ????? @UserSession.Current.DisplayName</h1>
+                <p>??? ??????: @UserSession.Current.UserName</p>
+            </div>
+            <button class="dashboard-action" @onclick="SignOut">????</button>
+        </header>
+
+        <div class="dashboard-grid">
+            <article class="dashboard-card">
+                <h2>????? ????</h2>
+                <p>??? ?? ??????? ??? ???? ???????:</p>
+                <ul>
+                    @foreach (var role in UserSession.Current.Roles)
+                    {
+                        <li>@role</li>
+                    }
+                </ul>
+            </article>
+
+            <article class="dashboard-card">
+                <h2>?????? ????</h2>
+                <p>@UserSession.Current.ExpiresAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</p>
+                <small>??? ???? ????? ??? ? ???? ???? ?????? ????? ????? ???? ??????.</small>
+            </article>
+        </div>
+    </section>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (!UserSession.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void SignOut()
+    {
+        UserSession.SignOut();
+        Navigation.NavigateTo("/login");
+    }
+
+    private void GoToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}

@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/BonyadRazavi.Shared/BonyadRazavi.Shared.csproj" />
+  </Folder>
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/BonyadRazavi.Gateway/BonyadRazavi.Gateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Auth/">
+    <Project Path="src/Services/Auth/BonyadRazavi.Auth.Api/BonyadRazavi.Auth.Api.csproj" />
+    <Project Path="src/Services/Auth/BonyadRazavi.Auth.Application/BonyadRazavi.Auth.Application.csproj" />
+    <Project Path="src/Services/Auth/BonyadRazavi.Auth.Domain/BonyadRazavi.Auth.Domain.csproj" />
+    <Project Path="src/Services/Auth/BonyadRazavi.Auth.Infrastructure/BonyadRazavi.Auth.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Web/">
+    <Project Path="src/Web/BonyadRazavi.WebApp/BonyadRazavi.WebApp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BonyadRazavi.Auth.Application.Tests/BonyadRazavi.Auth.Application.Tests.csproj" />
+  </Folder>
+</Solution>

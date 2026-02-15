@@ -1,0 +1,36 @@
+.portal-root {
+    min-height: 100vh;
+}
+
+#blazor-error-ui {
+    color-scheme: light only;
+    background: #fff6d7;
+    border-top: 1px solid #f1d58d;
+    bottom: 0;
+    box-shadow: 0 -2px 8px rgba(16, 29, 76, 0.15);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.8rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 2000;
+}
+
+#blazor-error-ui .reload {
+    color: #133baf;
+    margin-inline: 0.75rem;
+    text-decoration: none;
+}
+
+#blazor-error-ui .reload:hover {
+    text-decoration: underline;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    font-weight: 700;
+    position: absolute;
+    left: 0.75rem;
+    top: 0.5rem;
+}

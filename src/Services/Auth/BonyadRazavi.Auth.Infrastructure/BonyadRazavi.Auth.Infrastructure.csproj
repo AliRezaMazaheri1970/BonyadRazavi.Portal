@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\BonyadRazavi.Auth.Application\BonyadRazavi.Auth.Application.csproj" />
+    <ProjectReference Include="..\BonyadRazavi.Auth.Domain\BonyadRazavi.Auth.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\BonyadRazavi.Shared\BonyadRazavi.Shared.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
