@@ -13,17 +13,30 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.Configure<LoginLockoutOptions>(builder.Configuration.GetSection(LoginLockoutOptions.SectionName));
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("JWT settings are missing.");
-if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey) || jwtOptions.SigningKey.Length < 32)
+var envSigningKey = Environment.GetEnvironmentVariable("JWT_SIGNING_KEY");
+if (string.IsNullOrWhiteSpace(envSigningKey) || envSigningKey.Length < 32)
 {
-    throw new InvalidOperationException("JWT signing key must be at least 32 characters.");
+    throw new InvalidOperationException("JWT_SIGNING_KEY environment variable is required and must be at least 32 characters.");
+}
+jwtOptions.SigningKey = envSigningKey;
+builder.Services.PostConfigure<JwtOptions>(options =>
+{
+    options.SigningKey = envSigningKey;
+});
+if (builder.Environment.IsProduction() &&
+    string.Equals(jwtOptions.SigningKey, "Razavi-Portal-Dev-Key-ReplaceBeforeProd-AtLeast32Chars", StringComparison.Ordinal))
+{
+    throw new InvalidOperationException("Development JWT signing key is not allowed in production.");
 }
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-builder.Services.AddSingleton<IPasswordHasher, Sha256PasswordHasher>();
+builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
 builder.Services.AddSingleton<JwtTokenFactory>();
+builder.Services.AddSingleton<ILoginLockoutService, InMemoryLoginLockoutService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

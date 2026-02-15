@@ -1,0 +1,189 @@
+﻿# نقشه راه امنیتی پرتال (نسخه اجرایی)
+# Project: BonyadRazavi.Portal
+# Version: 0.2
+# Date: 2026-02-15
+
+---
+
+## 1) هدف سند
+این سند برای اجرای امنیت به صورت مرحله‌ای نوشته شده است تا:
+1. فقط Gateway در معرض اینترنت باشد.
+2. صدا زدن APIها فقط با JWT معتبر انجام شود.
+3. دسترسی بین‌شرکتی (Cross-Tenant) رخ ندهد.
+4. لاگ امنیتی استاندارد و قابل گزارش ثبت شود.
+
+---
+
+## 2) وضعیت فعلی واقعی پروژه (Baseline)
+مسیرهای واقعی فعلی بر اساس کد موجود:
+
+### Gateway
+- GET `/gateway/health`
+- Proxy route: `/api/auth/{**catch-all}` -> Auth.Api
+- Proxy route: `/{**catch-all}` -> WebApp
+
+### Auth API
+- POST `/api/auth/login` (Public)
+- GET `/api/auth/me` (Protected)
+- GET `/health`
+
+### WebApp
+- `/login`
+- `/dashboard`
+
+نکته: فعلا ماژول‌های Reports/Files/Chat و ... در کد فعال نیستند. در این نسخه فقط مسیرهای واقعی enforce می‌شوند.
+
+---
+
+## 3) اصول امنیتی مصوب
+1. Default Deny برای API
+- هر مسیر API که صراحتا مجاز نشده باشد، رد شود.
+
+2. JWT First
+- تمام APIهای محافظت‌شده فقط با Bearer Token معتبر.
+
+3. Tenant Isolation
+- CompanyCode فقط از Identity/Claim استخراج شود.
+- CompanyCode در Body/Query برای عملیات Tenant-Scoped معتبر نباشد مگر کنترل‌شده.
+
+4. Secrets Hygiene
+- کلید JWT در appsettings نگهداری نشود؛ فقط Env/Secret Store.
+
+5. Auditability
+- هر عملیات مهم با ActionType + Metadata ثبت شود.
+
+---
+
+## 4) مدل هویت و دسترسی
+### Claims حداقلی JWT
+- `sub` = UserId
+- `company_code` = Tenant
+- `jti` = Token Id
+- `role` یا `perm`
+- `iss`, `aud`, `exp`, `nbf`
+
+### Roles پایه
+- `SuperAdmin`
+- `CompanyAdmin`
+- `Manager`
+- `User`
+- `Auditor`
+
+### Policies پایه
+- `Portal.Access`
+- `Users.Read`, `Users.Manage`
+- `Companies.Read`, `Companies.Manage`
+- `Audit.Read`
+- `System.Admin`
+
+---
+
+## 5) Security Matrix فاز فعلی (v0 - ReadOnly/Current)
+
+| Method | Path | Exposure | Auth | Policy | TenantScoped | RateLimit پیشنهادی | ActionType |
+|---|---|---|---|---|---|---|---|
+| GET | /gateway/health | Public محدود | None/IP محدود | - | No | 30/min/IP | HealthCheck |
+| POST | /api/auth/login | Public | None | - | No | 5/min/IP + backoff | Login / LoginFailed |
+| GET | /api/auth/me | Protected | JWT | Portal.Access | Yes | 60/min/User | ViewProfile |
+| GET | /health | Internal/Protected | JWT یا IP محدود | System.Admin | No | 60/min/IP | ServiceHealth |
+| GET | /login | Public | None | - | No | 120/min/IP | ViewLogin |
+| GET | /dashboard | Protected (UI) | Session/JWT-backed | Portal.Access | Yes | 120/min/User | ViewDashboard |
+
+نکته اجرایی مهم:
+- `POST /api/auth/login` تنها مسیر عمومی برای صدور JWT باشد.
+- هر API جدیدی که اضافه می‌شود باید قبل از انتشار وارد این ماتریس شود.
+
+---
+
+## 6) استاندارد لاگ امنیتی (نسخه ساده مورد توافق)
+جدول لاگ فعلی با 4 ستون اصلی:
+- `UserId`
+- `ActionDate` (UTC)
+- `ActionType`
+- `Metadata` (JSON ترجیحی)
+
+نمونه Metadata:
+{
+  "ip": "1.2.3.4",
+  "userAgent": "...",
+  "device": "Desktop",
+  "os": "Windows 11",
+  "path": "/api/auth/login",
+  "isSuccess": true,
+  "traceId": "..."
+}
+
+قانون: هرگز Password/AccessToken/RefreshToken داخل Metadata ذخیره نشود.
+
+---
+
+## 7) نقشه راه مرحله‌ای
+
+### فاز 1 (هفته 1) - Hardening فوری
+1. خارج کردن JWT SigningKey از appsettings.
+2. اجباری شدن Authorize برای تمام APIهای غیر Public.
+3. Rate limit روی login در Gateway.
+4. Production: غیرفعال‌سازی OpenAPI عمومی.
+
+خروجی قابل قبول:
+- بدون JWT هیچ API محافظت‌شده پاسخ موفق ندهد.
+
+### فاز 2 (هفته 2) - مقاوم‌سازی احراز هویت
+1. جایگزینی hash ساده با PBKDF2/Argon2.
+2. AccessToken کوتاه‌عمر (10-15 دقیقه).
+3. طراحی RefreshToken چرخشی (در صورت نیاز فاز بعدی).
+4. Lockout موقت بعد از تلاش ناموفق متعدد.
+
+خروجی قابل قبول:
+- brute-force ساده روی login موثر نباشد.
+
+### فاز 3 (هفته 3) - Tenant Enforcement
+1. اضافه کردن Policy/Filter اجباری برای `company_code`.
+2. جلوگیری از پذیرش company_code از body/query در مسیرهای tenant-scoped.
+3. تست منفی: کاربر شرکت A نباید داده شرکت B را ببیند.
+
+خروجی قابل قبول:
+- Cross-tenant data leak = صفر.
+
+### فاز 4 (هفته 4) - Monitoring & Incident Readiness
+1. نهایی‌سازی ActionType taxonomy.
+2. هشدار برای LoginFailed غیرعادی.
+3. Runbook پاسخ رخداد (نشت کلید، compromise کاربر).
+
+خروجی قابل قبول:
+- تیم بتواند ظرف کمتر از 30 دقیقه واکنش عملیاتی بدهد.
+
+---
+
+## 8) لیست ActionType پیشنهادی نسخه 1.0
+- `Login`
+- `LoginFailed`
+- `Logout`
+- `ViewDashboard`
+- `ViewProfile`
+- `ViewCompany`
+- `ViewReport`
+- `SecurityDenied`
+- `TokenRefresh`
+- `TokenRevoke`
+
+---
+
+## 9) Backlog پس از فاز فعلی
+- `Users` API
+- `Companies` API
+- `Reports` API
+- `Chat` API
+- `Files` API
+- `Audit` API
+
+هر ماژول جدید قبل از پیاده‌سازی باید به Security Matrix اضافه شود (Path, Auth, Policy, RateLimit, ActionType).
+
+---
+
+## 10) تعریف Done نهایی امنیت
+1. فقط Gateway روی اینترنت اکسپوز باشد.
+2. همه APIهای غیر Public با JWT محافظت شوند.
+3. کلیدهای امنیتی خارج از کد و فایل تنظیمات ذخیره شوند.
+4. لاگ امنیتی 4 ستونی فعال و قابل گزارش باشد.
+5. تست Cross-Tenant و تست بدون توکن هر دو مردود شوند.
