@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using BonyadRazavi.Auth.Api.Security;
 using BonyadRazavi.Auth.Application.Abstractions;
 using BonyadRazavi.Shared.Contracts.Auth;

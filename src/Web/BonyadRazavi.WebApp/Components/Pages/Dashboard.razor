@@ -1,16 +1,16 @@
-@page "/dashboard"
+﻿@page "/dashboard"
 @rendermode InteractiveServer
 @inject UserSession UserSession
 @inject NavigationManager Navigation
 
-<PageTitle>???????</PageTitle>
+<PageTitle>داشبورد</PageTitle>
 
 @if (!UserSession.IsAuthenticated || UserSession.Current is null)
 {
     <section class="dashboard-state">
-        <h1>???? ?????? ???? ????</h1>
-        <p>???? ?????? ??????? ????? ???? ?????? ????.</p>
-        <button class="dashboard-action" @onclick="GoToLogin">?????? ?? ???? ????</button>
+        <h1>جلسه کاربری فعال نیست</h1>
+        <p>برای مشاهده داشبورد ابتدا وارد سامانه شوید.</p>
+        <button class="dashboard-action" @onclick="GoToLogin">بازگشت به صفحه ورود</button>
     </section>
 }
 else
@@ -18,16 +18,16 @@ else
     <section class="dashboard-shell">
         <header class="dashboard-header">
             <div>
-                <h1>??? ????? @UserSession.Current.DisplayName</h1>
-                <p>??? ??????: @UserSession.Current.UserName</p>
+                <h1>خوش آمدید @UserSession.Current.DisplayName</h1>
+                <p>نام کاربری: @UserSession.Current.UserName</p>
             </div>
-            <button class="dashboard-action" @onclick="SignOut">????</button>
+            <button class="dashboard-action" @onclick="SignOut">خروج</button>
         </header>
 
         <div class="dashboard-grid">
             <article class="dashboard-card">
-                <h2>????? ????</h2>
-                <p>??? ?? ??????? ??? ???? ???????:</p>
+                <h2>وضعیت نشست</h2>
+                <p>شما با نقش‌های زیر وارد شده‌اید:</p>
                 <ul>
                     @foreach (var role in UserSession.Current.Roles)
                     {
@@ -37,9 +37,9 @@ else
             </article>
 
             <article class="dashboard-card">
-                <h2>?????? ????</h2>
+                <h2>انقضای توکن</h2>
                 <p>@UserSession.Current.ExpiresAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</p>
-                <small>??? ???? ????? ??? ? ???? ???? ?????? ????? ????? ???? ??????.</small>
+                <small>این داده نمونه است و برای شروع معماری پروژه نمایش داده می‌شود.</small>
             </article>
         </div>
     </section>

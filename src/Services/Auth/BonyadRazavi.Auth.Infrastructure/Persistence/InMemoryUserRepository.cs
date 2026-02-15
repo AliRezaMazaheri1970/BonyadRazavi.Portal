@@ -1,4 +1,4 @@
-using BonyadRazavi.Auth.Application.Abstractions;
+﻿using BonyadRazavi.Auth.Application.Abstractions;
 using BonyadRazavi.Auth.Domain.Entities;
 
 namespace BonyadRazavi.Auth.Infrastructure.Persistence;

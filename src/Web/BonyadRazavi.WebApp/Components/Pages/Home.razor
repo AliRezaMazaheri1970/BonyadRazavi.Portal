@@ -1,11 +1,11 @@
-@page "/"
+﻿@page "/"
 @page "/login"
 @rendermode InteractiveServer
 @inject AuthApiClient AuthApiClient
 @inject UserSession UserSession
 @inject NavigationManager Navigation
 
-<PageTitle>???? ?? ?????</PageTitle>
+<PageTitle>ورود به پرتال</PageTitle>
 
 <div class="login-layout">
     <section class="brand-panel">
@@ -18,32 +18,32 @@
                 <path d="M114 62L154 54L121 81" fill="currentColor" />
             </svg>
 
-            <p class="brand-title">????? ???? ??????? ????</p>
-            <p class="brand-subtitle">?????? ??????? ????? ? ?????? ????????</p>
+            <p class="brand-title">بنیاد علوم کاربردی رازی</p>
+            <p class="brand-subtitle">سامانه یکپارچه خدمات و مدیریت فرآیندها</p>
         </div>
     </section>
 
     <section class="form-panel">
         <div class="login-card">
-            <h1>????? ????? ???? ??????? ????</h1>
+            <h1>پرتال بنیاد علوم کاربردی رازی</h1>
 
             <EditForm Model="_model" OnValidSubmit="OnSubmitAsync">
                 <DataAnnotationsValidator />
 
                 <div class="field-block">
-                    <InputText class="portal-input" @bind-Value="_model.UserName" placeholder="??? ??????" />
+                    <InputText class="portal-input" @bind-Value="_model.UserName" placeholder="نام کاربری" />
                     <ValidationMessage For="@(() => _model.UserName)" />
                 </div>
 
                 <div class="field-block">
-                    <InputText class="portal-input" type="password" @bind-Value="_model.Password" placeholder="???? ????" />
+                    <InputText class="portal-input" type="password" @bind-Value="_model.Password" placeholder="کلمه عبور" />
                     <ValidationMessage For="@(() => _model.Password)" />
                 </div>
 
-                <button class="ghost-link" type="button">??????? ???? ????</button>
+                <button class="ghost-link" type="button">فراموشی کلمه عبور</button>
 
                 <button class="login-button" type="submit" disabled="@_isSubmitting">
-                    @(_isSubmitting ? "?? ??? ?????..." : "???? ?? ??? ??????")
+                    @(_isSubmitting ? "در حال بررسی..." : "ورود به پنل کاربری")
                 </button>
             </EditForm>
 
@@ -53,9 +53,9 @@
             }
 
             <p class="hint-text">
-                ????? ???????: <span>admin</span>
+                کاربر آزمایشی: <span>admin</span>
                 <br />
-                ??? ????: <span>Razavi@1404</span>
+                رمز عبور: <span>Razavi@1404</span>
             </p>
         </div>
     </section>
@@ -95,11 +95,11 @@
                 return;
             }
 
-            _errorMessage = loginResult.ErrorMessage ?? "???? ?????? ???.";
+            _errorMessage = loginResult.ErrorMessage ?? "ورود ناموفق بود.";
         }
         catch
         {
-            _errorMessage = "?????? ?? ????? ?????? ???. ???? ????? Gateway ?? ????? ????.";
+            _errorMessage = "ارتباط با سرویس برقرار نشد. لطفا سرویس Gateway را بررسی کنید.";
         }
         finally
         {
