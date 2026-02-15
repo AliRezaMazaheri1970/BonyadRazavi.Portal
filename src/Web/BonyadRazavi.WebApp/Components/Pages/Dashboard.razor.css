@@ -1,12 +1,11 @@
 ﻿.portal-dashboard {
     min-height: 100vh;
-    background: #dfe2f1;
+/*    background: #dfe2f1;*/
     padding: 0.22rem;
 }
 
 .dashboard-frame {
     min-height: calc(100vh - 0.44rem);
-    border: 1px solid #1f1f1f;
     display: flex;
     gap: 1.45rem;
     padding: 1.45rem;
@@ -18,7 +17,7 @@
     border-radius: 28px;
     background: linear-gradient(180deg, #7680dc 0%, #2d4db2 42%, #12328e 100%);
     border: 1px solid rgba(13, 32, 102, 0.72);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
     color: #fff;
     padding: 1.65rem 1.75rem 1.5rem;
     display: flex;
@@ -42,21 +41,35 @@
     list-style: none;
     margin: 0;
     padding: 0;
-    text-align: center;
+    text-align: right;
     font-size: 1.05rem;
     line-height: 1.85;
+}
+
+.side-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    padding: 8px 0;
+    text-align: right;
+    text-decoration: none;
+}
+
+.active-link {
+    font-weight: bold;
+    color: #ffffff;
 }
 
 .side-exit {
     border: 0;
     background: transparent;
     color: #fff;
-    align-self: center;
     display: flex;
     align-items: center;
     gap: 0.7rem;
-    font-size: 2rem;
+    font-size: 1.05rem;
     cursor: pointer;
+    text-align: right;
 }
 
 .dashboard-main {
@@ -75,10 +88,10 @@
     margin-top: 0.2rem;
 }
 
-.user-strip p {
-    margin: 0;
-    font-size: 2.95rem;
-}
+    .user-strip p {
+        margin: 0;
+        font-size: 2.95rem;
+    }
 
 .user-avatar {
     width: 86px;
@@ -121,7 +134,7 @@
 
 .service-card {
     min-height: 196px;
-    background: #d2d7f1;
+    background: #0f2f84;
     border: 1px solid #bec8ee;
     border-radius: 24px;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.38), 0 4px 10px rgba(16, 33, 95, 0.1);
@@ -140,15 +153,15 @@
 .service-card h3 {
     margin: 0;
     text-align: center;
-    font-size: 2.25rem;
+    font-size: 1.25rem;
     color: #132f7d;
     font-weight: 500;
 }
 
 .today-strip {
-    width: min(840px, 100%);
+    width: min(70vw, 100%);
     margin-top: 1.12rem;
-    border-radius: 0 0 22px 22px;
+    border-radius: 0 25px 25px 0;
     background: #133184;
     color: #fff;
     min-height: 74px;
@@ -157,6 +170,10 @@
     justify-content: center;
     font-size: 2.1rem;
     font-weight: 500;
+    position: absolute;
+    bottom: 25px;
+    left: 0;
+    text-align: right;
 }
 
 .dashboard-state {
@@ -168,15 +185,15 @@
     padding: 1.5rem;
 }
 
-.dashboard-state h1 {
-    color: #12348f;
-    margin-bottom: 0.75rem;
-}
+    .dashboard-state h1 {
+        color: #12348f;
+        margin-bottom: 0.75rem;
+    }
 
-.dashboard-state p {
-    color: #435690;
-    margin-bottom: 1.2rem;
-}
+    .dashboard-state p {
+        color: #435690;
+        margin-bottom: 1.2rem;
+    }
 
 .dashboard-action {
     background: linear-gradient(90deg, #13378f 0%, #5f73d8 100%);

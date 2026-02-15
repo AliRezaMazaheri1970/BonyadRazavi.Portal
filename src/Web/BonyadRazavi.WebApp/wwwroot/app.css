@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     color-scheme: light;
     --text-main: #12214b;
     --text-muted: #4f5c88;
@@ -14,7 +14,7 @@ body {
     min-height: 100%;
     padding: 0;
     font-family: "Vazirmatn", "Segoe UI", sans-serif;
-    background: #f7f8ff;
+    background: #faf9ff;
     color: var(--text-main);
 }
 
