@@ -1,14 +1,13 @@
-.login-layout {
-    background: radial-gradient(circle at 15% 20%, rgba(142, 157, 255, 0.35), transparent 32%),
-        radial-gradient(circle at 92% 76%, rgba(65, 112, 255, 0.22), transparent 25%),
-        #f7f8ff;
+﻿.login-layout {
+    background: #fff;
     display: grid;
     grid-template-columns: minmax(350px, 1fr) minmax(420px, 1fr);
     min-height: 100vh;
 }
 
 .brand-panel {
-    background: linear-gradient(168deg, #6e79dd 0%, #3749aa 62%, #0d267f 100%);
+    background: #6E79DD;
+    background: linear-gradient(184deg,rgba(110, 121, 221, 1) 13%, rgba(2, 31, 102, 1) 97%);
     color: #fff;
     overflow: hidden;
     position: relative;
@@ -17,50 +16,10 @@
     justify-content: center;
     padding: 3rem;
 }
-
-.brand-panel::before,
-.brand-panel::after {
-    content: "";
-    position: absolute;
-    border-radius: 999px;
-    opacity: 0.38;
-}
-
-.brand-panel::before {
-    width: 420px;
-    height: 420px;
-    top: -160px;
-    left: -120px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 70%);
-}
-
-.brand-panel::after {
-    width: 380px;
-    height: 380px;
-    bottom: -170px;
-    right: -80px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent 67%);
-}
-
-.brand-bg-orb {
-    position: absolute;
-    width: min(72vw, 520px);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 72%);
-    filter: blur(8px);
-}
-
 .brand-content {
     text-align: center;
     position: relative;
     z-index: 2;
-}
-
-.brand-logo {
-    width: min(340px, 88%);
-    color: #f8f9ff;
-    filter: drop-shadow(0 8px 24px rgba(6, 17, 79, 0.45));
 }
 
 .brand-title {

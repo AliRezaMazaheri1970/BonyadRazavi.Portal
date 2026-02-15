@@ -11,13 +11,7 @@
     <section class="brand-panel">
         <div class="brand-bg-orb"></div>
         <div class="brand-content">
-            <svg class="brand-logo" viewBox="0 0 220 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M146 24C184 67 191 132 168 191C152 233 120 270 77 288C97 251 103 218 94 185C84 148 55 121 17 109C49 108 77 92 92 67C108 42 106 19 92 0C110 10 129 18 146 24Z" fill="currentColor" />
-                <path d="M76 103C114 127 129 170 117 218C111 241 101 260 85 275C95 238 90 205 70 173C54 149 32 131 0 118C34 120 58 114 76 103Z" fill="currentColor" opacity="0.85" />
-                <circle cx="104" cy="71" r="18" fill="currentColor" />
-                <path d="M114 62L154 54L121 81" fill="currentColor" />
-            </svg>
-
+           <img  src="./Images/logo-RASF1.png" width="300" alt="logo RASF"/>
             <p class="brand-title">بنیاد علوم کاربردی رازی</p>
             <p class="brand-subtitle">سامانه یکپارچه خدمات و مدیریت فرآیندها</p>
         </div>
@@ -25,18 +19,18 @@
 
     <section class="form-panel">
         <div class="login-card">
-            <h1>پرتال بنیاد علوم کاربردی رازی</h1>
+            <h1 class="text-center" style="margin-bottom: 30%;">پرتال بنیاد علوم کاربردی رازی</h1>
 
             <EditForm Model="_model" OnValidSubmit="OnSubmitAsync">
                 <DataAnnotationsValidator />
 
                 <div class="field-block">
-                    <InputText class="portal-input" @bind-Value="_model.UserName" placeholder="نام کاربری" />
+                    <InputText Style="background-color: #F0F1FD;" class="portal-input p-3 w-100 rounded-3 border-0" @bind-Value="_model.UserName" placeholder="نام کاربری" />
                     <ValidationMessage For="@(() => _model.UserName)" />
                 </div>
 
                 <div class="field-block">
-                    <InputText class="portal-input" type="password" @bind-Value="_model.Password" placeholder="کلمه عبور" />
+                    <InputText Style="background-color: #F0F1FD;" class="portal-input p-3 w-100 rounded-3 border-0" type="password" @bind-Value="_model.Password" placeholder="کلمه عبور" />
                     <ValidationMessage For="@(() => _model.Password)" />
                 </div>
 
@@ -52,11 +46,11 @@
                 <p class="login-error">@_errorMessage</p>
             }
 
-            <p class="hint-text">
+            @* <p class="hint-text">
                 کاربر آزمایشی: <span>admin</span>
                 <br />
                 رمز عبور: <span>Razavi@1404</span>
-            </p>
+            </p> *@
         </div>
     </section>
 </div>
