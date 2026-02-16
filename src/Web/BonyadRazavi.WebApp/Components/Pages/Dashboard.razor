@@ -46,10 +46,13 @@ else
                 <header class="header-dashboard">
                     
                     <div class="user-strip">
-                        <div class="user-avatar" title="@UserSession.Current.UserName">
-                            @GetInitials(UserSession.Current.DisplayName)
+                        <div title="@UserSession.Current.UserName">
+                            @* @GetInitials(UserSession.Current.DisplayName) *@
+                            <img class="user-avatar" src="Images/dashboard/user.png" />
                         </div>
-                        <p>نام کاربری</p>
+                        <p>
+                            @UserSession.Current.DisplayName
+                        </p>
                    </div>
                     <div class="today-strip">
                         تاریخ امروز : @GetTodayPersianText()

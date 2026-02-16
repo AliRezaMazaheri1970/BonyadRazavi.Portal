@@ -81,7 +81,7 @@
 }
 
 .icon-logout {
-    width: 2rem;
+    width: 1.7rem;
     filter: brightness(0) invert(1);
 }
 .dashboard-main {
@@ -113,8 +113,9 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    border: 5px solid rgba(255, 255, 255, 0.8);
-    background: radial-gradient(circle at 34% 22%, #8aa0f4, #1d38a3 78%);
+    border: 5px solid rgb(255, 255, 255);
+/*    background: radial-gradient(circle at 34% 22%, #8aa0f4, #1d38a3 78%);*/
+    background: #FFF;
     color: #fff;
     display: grid;
     place-items: center;
