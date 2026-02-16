@@ -21,10 +21,12 @@ public sealed class JwtTokenFactory
     {
         var now = DateTime.UtcNow;
         var expiresAt = now.AddMinutes(_options.AccessTokenLifetimeMinutes);
+        var accessTokenId = Guid.NewGuid().ToString("N");
 
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Jti, accessTokenId),
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.UserName),
             new("display_name", user.DisplayName),
@@ -52,6 +54,7 @@ public sealed class JwtTokenFactory
         return new LoginResponse
         {
             AccessToken = rawToken,
+            AccessTokenId = accessTokenId,
             ExpiresAtUtc = expiresAt,
             UserName = user.UserName,
             DisplayName = user.DisplayName,

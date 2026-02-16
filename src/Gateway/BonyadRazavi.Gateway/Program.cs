@@ -71,6 +71,19 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             });
     });
+
+    options.AddPolicy("refresh", context =>
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown-ip";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"refresh:{ip}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
 });
 
 builder.Services

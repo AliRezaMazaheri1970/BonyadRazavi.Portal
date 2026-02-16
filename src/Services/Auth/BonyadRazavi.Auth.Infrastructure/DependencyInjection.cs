@@ -14,6 +14,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.Configure<PersistenceOptions>(configuration.GetSection(PersistenceOptions.SectionName));
+        services.Configure<RefreshTokenOptions>(configuration.GetSection(RefreshTokenOptions.SectionName));
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
         var persistenceOptions = configuration.GetSection(PersistenceOptions.SectionName).Get<PersistenceOptions>()
@@ -23,6 +24,7 @@ public static class DependencyInjection
         {
             services.AddSingleton<IUserRepository, InMemoryUserRepository>();
             services.AddSingleton<IUserActionLogService, NoOpUserActionLogService>();
+            services.AddSingleton<IRefreshTokenService, InMemoryRefreshTokenService>();
             return services;
         }
 
@@ -39,6 +41,7 @@ public static class DependencyInjection
         services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<IUserRepository, SqlUserRepository>();
         services.AddScoped<IUserActionLogService, DbUserActionLogService>();
+        services.AddScoped<IRefreshTokenService, DbRefreshTokenService>();
 
         return services;
     }

@@ -10,3 +10,24 @@ Content-Type: application/json
 }
 
 ###
+
+### Refresh
+POST {{BonyadRazavi.Auth.Api_HostAddress}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "PUT_REFRESH_TOKEN_HERE"
+}
+
+###
+
+### Revoke
+POST {{BonyadRazavi.Auth.Api_HostAddress}}/api/auth/revoke
+Content-Type: application/json
+
+{
+  "refreshToken": "PUT_REFRESH_TOKEN_HERE",
+  "reason": "Manual logout"
+}
+
+###
