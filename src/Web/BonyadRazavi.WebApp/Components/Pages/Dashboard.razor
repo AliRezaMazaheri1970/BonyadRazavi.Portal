@@ -26,7 +26,7 @@ else
                         @foreach (var item in SidebarItems)
                         {
                             <li class="p-1">
-                                <NavLink href="@item.Route" class="side-link" ActiveClass="active-link" style="color: #fff; text-decoration: none;text-shadow: 0px 0px 3px rgba(50, 60, 196, 1);">
+                                <NavLink href="@item.Route" class="side-link" ActiveClass="active-link" style="color: #fff; text-decoration: none;text-shadow: 0px 0px 3px rgba(50, 60, 196, 1);font-size:1rem;">
                                     @item.Title
                                 </NavLink>
                             </li>
@@ -36,7 +36,8 @@ else
                 </div>
 
                 <button class="side-exit" @onclick="SignOut">
-                    <span aria-hidden="true">↩</span>
+                    @* <span aria-hidden="true">↩</span> *@
+                    <img class="icon-logout" src="Images/dashboard/logout.png" />
                     <span> خروج</span>
                 </button>
             </aside>
