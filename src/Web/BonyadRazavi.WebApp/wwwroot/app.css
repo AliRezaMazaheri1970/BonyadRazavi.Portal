@@ -14,7 +14,8 @@ body {
     min-height: 100%;
     padding: 0;
     font-family: "Vazirmatn", "Segoe UI", sans-serif;
-    background: #faf9ff;
+    background: #F9F9FD;
+    background: linear-gradient(70deg, rgb(53, 83, 183) 0%, rgb(34, 66, 163) 50%, rgb(32, 64, 161) 100%);
     color: var(--text-main);
 }
 

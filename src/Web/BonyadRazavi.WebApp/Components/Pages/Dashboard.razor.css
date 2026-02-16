@@ -10,14 +10,14 @@
     gap: 4.45rem;
     padding: 1.45rem;
     box-sizing: border-box;
-    align-items: center;
+/*    align-items: center;*/
     justify-content: center;
 }
 
 .dashboard-side {
     width: 365px;
     border-radius: 28px;
-    background: linear-gradient(180deg, #7680dc 0%, #2d4db2 42%, #12328e 100%);
+    background: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);
     border: 1px solid rgba(13, 32, 102, 0.72);
     box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
     color: #fff;
@@ -25,6 +25,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    height: inherit;
 }
 
 .side-top {
@@ -34,9 +35,11 @@
 }
 
 .side-logo {
-    width: 182px;
-    filter: brightness(0) invert(1);
+    width: 150px;
+/*    filter: brightness(0) invert(1);*/
     margin-bottom: 0.95rem;
+    padding: 1rem;
+    margin: 2rem 0;
 }
 
 .side-menu {
@@ -50,16 +53,17 @@
 
 .side-link {
     text-decoration: none;
-    color: inherit;
+    color: #fff;
     display: block;
     padding: 8px 0;
     text-align: right;
     text-decoration: none;
+
 }
 
 .active-link {
     font-weight: bold;
-    color: #ffffff;
+    color: #132f7d;
 }
 
 .side-exit {
@@ -72,6 +76,8 @@
     font-size: 1.05rem;
     cursor: pointer;
     text-align: right;
+    margin-top: 60px;
+    text-shadow: 0px 0px 3px rgba(50, 60, 196, 1);
 }
 
 .dashboard-main {
@@ -82,18 +88,21 @@
     color: #0f2f84;
     max-width:70%;
 }
-
+.header-dashboard {
+    display: flex;
+    justify-content: space-between;
+}
 .user-strip {
     display: flex;
+    justify-content: center;
     align-items: center;
-/*    justify-content: center;*/
-    gap: 1rem;
-    margin-top: 0.2rem;
+    gap: 15px;
 }
 
     .user-strip p {
         margin: 0;
         font-size: 1.5rem;
+        color:white;
     }
 
 .user-avatar {
@@ -110,10 +119,11 @@
 }
 
 .welcome-title {
-    margin: 1.45rem 0;
-    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);
+    margin:2rem 0 3rem 0;
+/*    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);*/
+    font-size: 2rem;
     font-weight: 500;
-/*    text-align: center;*/
+    color: white;
 }
 
 .chat-entry {
@@ -129,25 +139,91 @@
 }
 
 .service-grid {
-/*    width: min(840px, 100%);*/
+    /*    width: min(840px, 100%);*/
     display: grid;
-    grid-template-columns: repeat(5, minmax(170px, 1fr));
+    grid-template-columns: repeat(4, minmax(170px, 1fr));
     gap: 3rem;
+    background: white;
+    /*    justify-items: center;*/
+    padding: 40px;
+    border-radius: 25px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
+    background: #F9F9FD;
+    background-image: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);
 }
 
-    .service-grid ::deep a.service-card {
+/*    .service-grid ::deep a.service-card {
         min-height: 220px;
-        background: #c0c6fc;
-/*        border: 1px solid #eaeefe;*/
+        background: #F9F9FD;
+        background: linear-gradient(145deg, #fafafe, #f0effc);
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
         border-radius: 25px;
-        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 0.7rem;
         text-decoration: none;
+        transition: all 750ms ease-in-out 0s;
     }
+
+
+    .service-grid ::deep a.service-card:hover {
+        background: linear-gradient(90deg, #ededff, #e4e4fc);
+
+    }*/
+
+    .service-grid ::deep a.service-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 220px;
+        border-radius: 25px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.7rem;
+        text-decoration: none;
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
+    }
+
+        /* لایه حالت عادی */
+        .service-grid ::deep a.service-card::before,
+        .service-grid ::deep a.service-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            transition: opacity 350ms ease-in-out;
+        }
+
+        /* گرادیان اولیه */
+        .service-grid ::deep a.service-card::before {
+            background: #fffcfc;
+/*            background: linear-gradient(120deg, #fffcfc 0%, #ced2f7 50%, #979eeb 100%);*/
+            opacity: 1;
+        }
+
+        /* گرادیان هاور */
+        .service-grid ::deep a.service-card::after {
+            background: linear-gradient(90deg, #ededff, #e4e4fc);
+            opacity: 0;
+        }
+
+        .service-grid ::deep a.service-card:hover::after {
+            opacity: 1;
+        }
+
+        .service-grid ::deep a.service-card:hover::before {
+            opacity: 0;
+        }
+
+        /* محتوا روی لایه‌ها */
+        .service-grid ::deep a.service-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
 
 .service-icon {
     width: 84px;
@@ -163,22 +239,17 @@
 }
 
 .today-strip {
-    width: min(70vw, 100%);
-    margin-top: 1.12rem;
-    border-radius: 0 25px 25px 0;
-    background: #133184;
-    color: #fff;
-    min-height: 57px;
+    width: min(17vw, 100%);
+    border-radius: 25px;
+    background: #d4deff;
+    color: #132f7d;
+    min-height: 50px;
     display: flex;
     align-items: center;
-    justify-content: start;
-    font-size: 1.1rem;
-    font-weight: 500;
-    position: absolute;
-    bottom: 25px;
-    left: 0;
-    text-align: right;
-    padding-right: 20px;
+    justify-content: center;
+    font-size: 1rem;
+    text-align: center;
+    padding: 0 20px;
 }
 
 .dashboard-state {
