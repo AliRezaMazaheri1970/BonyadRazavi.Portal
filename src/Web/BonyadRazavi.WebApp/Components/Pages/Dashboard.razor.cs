@@ -15,12 +15,12 @@ namespace BonyadRazavi.WebApp.Components.Pages
     new("شکایت", "Images/dashboard/complaint.png", "/complaint"),
     new("نظرسنجی", "Images/dashboard/survey.png", "/survey"),
     new("وضعیت مالی", "Images/dashboard/finance.png", "/finance"),
-    new("اعلام هزینه", "Images/dashboard/cost.png", "/cost"),
-    new("شکایت", "Images/dashboard/complaint.png", "/complaint"),
-    new("نظرسنجی", "Images/dashboard/survey.png", "/survey"),
-    new("دریافت گزارش و صورتحساب", "Images/dashboard/reports.png", "/reports"),
-    new("وضعیت مالی", "Images/dashboard/finance.png", "/finance"),
-    new("پیگیری مرحله آزمایش", "Images/dashboard/lab.png", "/lab-tracking")
+    new("ارسال اطلاعات", "Images/dashboard/SendInformation.png", "/cost"),
+    new("ارسال لینک یکبار مصرف توسط پیامک", "Images/dashboard/sms.png", "/complaint"),
+    new("چت آنلاین", "Images/dashboard/chat-online.png", "/survey"),
+    new("دسته بندی مشتریان و امتیازدهی", "Images/dashboard/category-customer.png", "/reports"),
+    new("اطلاعات مازاد براساس آخرین گزارش", "Images/dashboard/information.png", "/finance"),
+    new("پذیرش آنلاین", "Images/dashboard/reception-online.png", "/lab-tracking")
         ];
 
 
