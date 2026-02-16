@@ -205,8 +205,10 @@
         /* گرادیان اولیه */
         .service-grid ::deep a.service-card::before {
             background: #fffcfc;
-/*            background: linear-gradient(120deg, #fffcfc 0%, #ced2f7 50%, #979eeb 100%);*/
+            /*            background: linear-gradient(120deg, #fffcfc 0%, #ced2f7 50%, #979eeb 100%);*/
             opacity: 1;
+            /*            box-shadow: rgba(227, 225, 255, 0.76) 0px -23px 25px 0px inset, rgba(199, 214, 255, 0.78) 0px -36px 30px 0px inset, rgba(229, 235, 255, 0.85) 0px -79px 40px 0px inset;*/
+            box-shadow: rgba(231, 230, 251, 0.58) 0px -23px 25px 0px inset, rgba(209, 221, 251, 0.46) 0px -36px 30px 0px inset, rgba(229, 235, 255, 0.72) 0px -79px 40px 0px inset;
         }
 
         /* گرادیان هاور */
