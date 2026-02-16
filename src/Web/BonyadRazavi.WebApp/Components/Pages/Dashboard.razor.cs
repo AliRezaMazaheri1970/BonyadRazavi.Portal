@@ -18,7 +18,9 @@ namespace BonyadRazavi.WebApp.Components.Pages
     new("اعلام هزینه", "Images/dashboard/cost.png", "/cost"),
     new("شکایت", "Images/dashboard/complaint.png", "/complaint"),
     new("نظرسنجی", "Images/dashboard/survey.png", "/survey"),
-    new("دریافت گزارش و صورتحساب", "Images/dashboard/reports.png", "/reports")
+    new("دریافت گزارش و صورتحساب", "Images/dashboard/reports.png", "/reports"),
+    new("وضعیت مالی", "Images/dashboard/finance.png", "/finance"),
+    new("پیگیری مرحله آزمایش", "Images/dashboard/lab.png", "/lab-tracking")
         ];
 
 

@@ -20,13 +20,13 @@ else
         <div class="dashboard-frame">
             <aside class="dashboard-side">
                 <div class="side-top">
-                    <img src="Images/logo-RASF1.png" class="side-logo" alt="لوگوی بنیاد" />
+                    <img src="Images/logo1.png" class="side-logo" alt="لوگوی بنیاد" />
 
                     <ul class="side-menu">
                         @foreach (var item in SidebarItems)
                         {
                             <li class="p-1">
-                                <NavLink href="@item.Route" class="side-link" ActiveClass="active-link" style="color: #fff;text-decoration: none;">
+                                <NavLink href="@item.Route" class="side-link" ActiveClass="active-link" style="color: #fff; text-decoration: none;text-shadow: 0px 0px 3px rgba(50, 60, 196, 1);">
                                     @item.Title
                                 </NavLink>
                             </li>
@@ -42,17 +42,22 @@ else
             </aside>
 
             <main class="dashboard-main">
-                <header class="user-strip">
+                <header class="header-dashboard">
                     
-                    <div class="user-avatar" title="@UserSession.Current.UserName">
-                        @GetInitials(UserSession.Current.DisplayName)
-                    </div>
-                    <p>نام کاربری</p>
+                    <div class="user-strip">
+                        <div class="user-avatar" title="@UserSession.Current.UserName">
+                            @GetInitials(UserSession.Current.DisplayName)
+                        </div>
+                        <p>نام کاربری</p>
+                   </div>
+                    <div class="today-strip">
+                        تاریخ امروز : @GetTodayPersianText()
+                   </div>
                 </header>
 
                 <h1 class="welcome-title">به پرتال بنیاد علوم کاربردی رازی خوش آمدید</h1>
 
-                <button class="chat-entry" type="button">ورود به بخش چت آنلاین</button>
+                @* <button class="chat-entry" type="button">ورود به بخش چت آنلاین</button> *@
 
                 <div class="service-grid">
                     @foreach (var tile in DashboardTiles)
