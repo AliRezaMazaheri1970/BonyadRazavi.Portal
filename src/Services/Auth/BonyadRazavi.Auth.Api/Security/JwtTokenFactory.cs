@@ -25,9 +25,15 @@ public sealed class JwtTokenFactory
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.UserName),
-            new("display_name", user.DisplayName)
+            new("display_name", user.DisplayName),
+            new("company_code", user.CompanyCode.ToString())
         };
+        if (!string.IsNullOrWhiteSpace(user.CompanyName))
+        {
+            claims.Add(new Claim("company_name", user.CompanyName));
+        }
         claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
@@ -49,7 +55,9 @@ public sealed class JwtTokenFactory
             ExpiresAtUtc = expiresAt,
             UserName = user.UserName,
             DisplayName = user.DisplayName,
-            Roles = user.Roles.ToList()
+            Roles = user.Roles.ToList(),
+            CompanyCode = user.CompanyCode,
+            CompanyName = user.CompanyName
         };
     }
 }

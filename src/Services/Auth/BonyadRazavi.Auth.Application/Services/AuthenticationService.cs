@@ -31,7 +31,18 @@ public sealed class AuthenticationService : IAuthenticationService
             return AuthenticationResult.Fail("نام کاربری یا کلمه عبور اشتباه است.");
         }
 
+        if (user.Company is null || !user.Company.IsActive)
+        {
+            return AuthenticationResult.Fail("کاربر به شرکت فعال متصل نشده است.");
+        }
+
         return AuthenticationResult.Success(
-            new AuthenticatedUser(user.Id, user.UserName, user.DisplayName, user.Roles));
+            new AuthenticatedUser(
+                user.Id,
+                user.UserName,
+                user.DisplayName,
+                user.Roles,
+                user.Company.CompanyCode,
+                user.Company.CompanyName));
     }
 }

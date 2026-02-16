@@ -1,8 +1,9 @@
 using System.Globalization;
-using System.Net;
 using System.Security.Claims;
+using BonyadRazavi.Auth.Api.Audit;
 using BonyadRazavi.Auth.Api.Security;
 using BonyadRazavi.Auth.Application.Abstractions;
+using BonyadRazavi.Auth.Application.Constants;
 using BonyadRazavi.Shared.Contracts.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,15 +17,18 @@ public sealed class AuthController : ControllerBase
     private readonly IAuthenticationService _authenticationService;
     private readonly JwtTokenFactory _jwtTokenFactory;
     private readonly ILoginLockoutService _loginLockoutService;
+    private readonly IUserActionLogService _userActionLogService;
 
     public AuthController(
         IAuthenticationService authenticationService,
         JwtTokenFactory jwtTokenFactory,
-        ILoginLockoutService loginLockoutService)
+        ILoginLockoutService loginLockoutService,
+        IUserActionLogService userActionLogService)
     {
         _authenticationService = authenticationService;
         _jwtTokenFactory = jwtTokenFactory;
         _loginLockoutService = loginLockoutService;
+        _userActionLogService = userActionLogService;
     }
 
     [AllowAnonymous]
@@ -42,12 +46,17 @@ public sealed class AuthController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        var userName = request.UserName ?? string.Empty;
-        var clientIp = ResolveClientIp(HttpContext);
+        var userName = request.UserName?.Trim() ?? string.Empty;
+        var clientIp = RequestAuditMetadataFactory.ResolveClientIp(HttpContext);
 
         var lockoutStatus = _loginLockoutService.GetStatus(userName, clientIp);
         if (lockoutStatus.IsLocked)
         {
+            await LogLoginFailureAsync(
+                userName,
+                reason: "LockedByRateLimit",
+                lockoutStatus,
+                cancellationToken);
             return BuildLockedResponse(lockoutStatus);
         }
 
@@ -55,6 +64,11 @@ public sealed class AuthController : ControllerBase
         if (!result.Succeeded || result.User is null)
         {
             lockoutStatus = _loginLockoutService.RegisterFailure(userName, clientIp);
+            await LogLoginFailureAsync(
+                userName,
+                reason: lockoutStatus.IsLocked ? "InvalidCredentialsLocked" : "InvalidCredentials",
+                lockoutStatus,
+                cancellationToken);
             if (lockoutStatus.IsLocked)
             {
                 return BuildLockedResponse(lockoutStatus);
@@ -69,25 +83,52 @@ public sealed class AuthController : ControllerBase
         }
 
         _loginLockoutService.RegisterSuccess(userName, clientIp);
+        await _userActionLogService.LogAsync(
+            result.User.Id,
+            AuditActionTypes.Login,
+            RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+            {
+                ["userName"] = result.User.UserName,
+                ["companyCode"] = result.User.CompanyCode,
+                ["companyName"] = result.User.CompanyName,
+                ["roles"] = result.User.Roles
+            }),
+            cancellationToken);
+
         var token = _jwtTokenFactory.Create(result.User);
         return Ok(token);
     }
 
     [Authorize]
     [HttpGet("me")]
-    public ActionResult<object> Me()
+    public async Task<ActionResult<object>> Me(CancellationToken cancellationToken)
     {
+        var userId = RequestAuditMetadataFactory.ResolveAuthenticatedUserId(User);
         var userName = User.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
         var displayName = User.FindFirstValue("display_name") ?? userName;
+        var companyCode = User.FindFirstValue("company_code") ?? string.Empty;
+        var companyName = User.FindFirstValue("company_name") ?? string.Empty;
         var roles = User.Claims
             .Where(claim => claim.Type == ClaimTypes.Role)
             .Select(claim => claim.Value)
             .ToArray();
 
+        await _userActionLogService.LogAsync(
+            userId,
+            AuditActionTypes.ViewProfile,
+            RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+            {
+                ["userName"] = userName,
+                ["companyCode"] = companyCode
+            }),
+            cancellationToken);
+
         return Ok(new
         {
             userName,
             displayName,
+            companyCode,
+            companyName,
             roles
         });
     }
@@ -107,32 +148,24 @@ public sealed class AuthController : ControllerBase
         });
     }
 
-    private static string ResolveClientIp(HttpContext context)
+    private async Task LogLoginFailureAsync(
+        string userName,
+        string reason,
+        LockoutStatus lockoutStatus,
+        CancellationToken cancellationToken)
     {
-        if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedForHeader))
-        {
-            var firstValue = forwardedForHeader
-                .ToString()
-                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(firstValue) && IPAddress.TryParse(firstValue, out _))
+        await _userActionLogService.LogAsync(
+            userId: null,
+            actionType: AuditActionTypes.LoginFailed,
+            metadata: RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
             {
-                return firstValue;
-            }
-        }
-
-        var remoteIp = context.Connection.RemoteIpAddress;
-        if (remoteIp is not null)
-        {
-            if (remoteIp.IsIPv4MappedToIPv6)
-            {
-                remoteIp = remoteIp.MapToIPv4();
-            }
-
-            return remoteIp.ToString();
-        }
-
-        return "unknown-ip";
+                ["userName"] = userName,
+                ["reason"] = reason,
+                ["isLocked"] = lockoutStatus.IsLocked,
+                ["retryAfterSeconds"] = lockoutStatus.IsLocked
+                    ? Math.Max((int)Math.Ceiling(lockoutStatus.RetryAfter.TotalSeconds), 1)
+                    : null
+            }),
+            cancellationToken);
     }
 }

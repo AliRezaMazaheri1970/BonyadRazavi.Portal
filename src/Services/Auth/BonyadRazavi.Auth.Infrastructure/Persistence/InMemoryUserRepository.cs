@@ -18,6 +18,11 @@ public sealed class InMemoryUserRepository : IUserRepository
                 passwordHash: passwordHasher.Hash("Razavi@1404"),
                 roles: ["Admin", "Operator"])
         };
+
+        _users["admin"].SetCompany(
+            companyCode: Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            companyName: "شرکت پیش فرض",
+            isActive: true);
     }
 
     public Task<UserAccount?> FindByUserNameAsync(string userName, CancellationToken cancellationToken = default)

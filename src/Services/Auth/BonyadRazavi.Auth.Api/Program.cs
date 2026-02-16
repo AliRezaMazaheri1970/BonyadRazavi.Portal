@@ -3,7 +3,6 @@ using BonyadRazavi.Auth.Api.Security;
 using BonyadRazavi.Auth.Application.Abstractions;
 using BonyadRazavi.Auth.Application.Services;
 using BonyadRazavi.Auth.Infrastructure.Persistence;
-using BonyadRazavi.Auth.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -33,8 +32,7 @@ if (builder.Environment.IsProduction() &&
 }
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
-builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+builder.Services.AddAuthInfrastructure(builder.Configuration);
 builder.Services.AddSingleton<JwtTokenFactory>();
 builder.Services.AddSingleton<ILoginLockoutService, InMemoryLoginLockoutService>();
 
@@ -58,6 +56,7 @@ builder.Services
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+await app.Services.ApplyAuthMigrationsIfEnabledAsync();
 
 if (app.Environment.IsDevelopment())
 {

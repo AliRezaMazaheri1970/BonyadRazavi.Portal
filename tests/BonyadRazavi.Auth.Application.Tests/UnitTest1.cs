@@ -16,6 +16,7 @@ public sealed class AuthenticationServiceTests
             displayName: "Admin User",
             passwordHash: "hashed-password",
             roles: ["Admin"]);
+        user.SetCompany(Guid.NewGuid(), "Test Company", isActive: true);
 
         var service = new AuthenticationService(
             new StubUserRepository(user),
@@ -41,6 +42,7 @@ public sealed class AuthenticationServiceTests
             displayName: "Admin User",
             passwordHash: "hashed-password",
             roles: ["Admin"]);
+        user.SetCompany(Guid.NewGuid(), "Test Company", isActive: true);
 
         var service = new AuthenticationService(
             new StubUserRepository(user),
