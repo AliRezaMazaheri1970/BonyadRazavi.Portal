@@ -1,4 +1,5 @@
 using BonyadRazavi.Auth.Application.Abstractions;
+using BonyadRazavi.Auth.Application.Models;
 using BonyadRazavi.Auth.Application.Services;
 using BonyadRazavi.Auth.Domain.Entities;
 using BonyadRazavi.Shared.Contracts.Auth;
@@ -20,6 +21,7 @@ public sealed class AuthenticationServiceTests
 
         var service = new AuthenticationService(
             new StubUserRepository(user),
+            new StubCompanyDirectoryService(),
             new StubPasswordHasher(isValid: true));
 
         var result = await service.AuthenticateAsync(new LoginRequest
@@ -46,6 +48,7 @@ public sealed class AuthenticationServiceTests
 
         var service = new AuthenticationService(
             new StubUserRepository(user),
+            new StubCompanyDirectoryService(),
             new StubPasswordHasher(isValid: false));
 
         var result = await service.AuthenticateAsync(new LoginRequest
@@ -85,5 +88,32 @@ public sealed class AuthenticationServiceTests
         public string Hash(string rawPassword) => rawPassword;
 
         public bool Verify(string hash, string rawPassword) => _isValid;
+    }
+
+    private sealed class StubCompanyDirectoryService : ICompanyDirectoryService
+    {
+        public Task<CompanyDirectoryEntry?> FindByCodeAsync(
+            Guid companyCode,
+            CancellationToken cancellationToken = default)
+        {
+            if (companyCode == Guid.Empty)
+            {
+                return Task.FromResult<CompanyDirectoryEntry?>(null);
+            }
+
+            return Task.FromResult<CompanyDirectoryEntry?>(
+                new CompanyDirectoryEntry(companyCode, "Test Company"));
+        }
+
+        public Task<IReadOnlyDictionary<Guid, string?>> GetNamesByCodesAsync(
+            IReadOnlyCollection<Guid> companyCodes,
+            CancellationToken cancellationToken = default)
+        {
+            var map = companyCodes
+                .Distinct()
+                .ToDictionary(code => code, _ => (string?)"Test Company");
+
+            return Task.FromResult<IReadOnlyDictionary<Guid, string?>>(map);
+        }
     }
 }

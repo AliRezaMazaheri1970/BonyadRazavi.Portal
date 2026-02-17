@@ -1,0 +1,29 @@
+name: security-auth-tests
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  auth-security-tests:
+    runs-on: ubuntu-latest
+    env:
+      JWT_SIGNING_KEY: BonyadRazavi-CI-Test-Key-At-Least-32-Characters
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore tests
+        run: dotnet restore tests/BonyadRazavi.Auth.Application.Tests/BonyadRazavi.Auth.Application.Tests.csproj
+
+      - name: Run security tests
+        run: dotnet test tests/BonyadRazavi.Auth.Application.Tests/BonyadRazavi.Auth.Application.Tests.csproj --configuration Release --no-restore

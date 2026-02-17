@@ -4,6 +4,7 @@ using BonyadRazavi.Auth.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BonyadRazavi.Auth.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    partial class AuthDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260217081903_AddCompanyCodeToUsers")]
+    partial class AddCompanyCodeToUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,6 +118,36 @@ namespace BonyadRazavi.Auth.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BonyadRazavi.Auth.Domain.Entities.UserCompany", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("UserId");
+
+                    b.Property<Guid>("CompanyCode")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CompanyName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("CompanyCode");
+
+                    b.ToTable("UserCompanies", (string)null);
+                });
+
             modelBuilder.Entity("BonyadRazavi.Auth.Domain.Entities.UserRefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -186,6 +219,17 @@ namespace BonyadRazavi.Auth.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("BonyadRazavi.Auth.Domain.Entities.UserCompany", b =>
+                {
+                    b.HasOne("BonyadRazavi.Auth.Domain.Entities.UserAccount", "User")
+                        .WithOne("Company")
+                        .HasForeignKey("BonyadRazavi.Auth.Domain.Entities.UserCompany", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BonyadRazavi.Auth.Domain.Entities.UserRefreshToken", b =>
                 {
                     b.HasOne("BonyadRazavi.Auth.Domain.Entities.UserAccount", "User")
@@ -200,6 +244,8 @@ namespace BonyadRazavi.Auth.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("BonyadRazavi.Auth.Domain.Entities.UserAccount", b =>
                 {
                     b.Navigation("ActionLogs");
+
+                    b.Navigation("Company");
 
                     b.Navigation("RefreshTokens");
                 });

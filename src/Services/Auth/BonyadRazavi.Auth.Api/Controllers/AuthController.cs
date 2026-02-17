@@ -18,6 +18,7 @@ public sealed class AuthController : ControllerBase
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly JwtTokenFactory _jwtTokenFactory;
     private readonly ILoginLockoutService _loginLockoutService;
+    private readonly ILoginFailureAlertService _loginFailureAlertService;
     private readonly IUserActionLogService _userActionLogService;
 
     public AuthController(
@@ -25,12 +26,14 @@ public sealed class AuthController : ControllerBase
         IRefreshTokenService refreshTokenService,
         JwtTokenFactory jwtTokenFactory,
         ILoginLockoutService loginLockoutService,
+        ILoginFailureAlertService loginFailureAlertService,
         IUserActionLogService userActionLogService)
     {
         _authenticationService = authenticationService;
         _refreshTokenService = refreshTokenService;
         _jwtTokenFactory = jwtTokenFactory;
         _loginLockoutService = loginLockoutService;
+        _loginFailureAlertService = loginFailureAlertService;
         _userActionLogService = userActionLogService;
     }
 
@@ -87,6 +90,7 @@ public sealed class AuthController : ControllerBase
         }
 
         _loginLockoutService.RegisterSuccess(userName, clientIp);
+        _loginFailureAlertService.RegisterSuccess(userName, clientIp);
         var token = _jwtTokenFactory.Create(result.User);
         var refreshToken = await _refreshTokenService.IssueAsync(
             result.User,
@@ -196,9 +200,16 @@ public sealed class AuthController : ControllerBase
             userAgent,
             cancellationToken);
 
+        var actionType = string.Equals(
+            request.Reason?.Trim(),
+            "Logout",
+            StringComparison.OrdinalIgnoreCase)
+            ? AuditActionTypes.Logout
+            : AuditActionTypes.TokenRevoke;
+
         await _userActionLogService.LogAsync(
             RequestAuditMetadataFactory.ResolveAuthenticatedUserId(User),
-            AuditActionTypes.TokenRevoke,
+            actionType,
             RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
             {
                 ["isSuccess"] = revokeResult.Succeeded,
@@ -210,7 +221,7 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
-    [Authorize]
+    [Authorize(Policy = AuthorizationPolicies.PortalAccess)]
     [HttpGet("me")]
     public async Task<ActionResult<object>> Me(CancellationToken cancellationToken)
     {
@@ -265,6 +276,9 @@ public sealed class AuthController : ControllerBase
         LockoutStatus lockoutStatus,
         CancellationToken cancellationToken)
     {
+        var clientIp = RequestAuditMetadataFactory.ResolveClientIp(HttpContext);
+        _loginFailureAlertService.RegisterFailure(userName, clientIp);
+
         await _userActionLogService.LogAsync(
             userId: null,
             actionType: AuditActionTypes.LoginFailed,

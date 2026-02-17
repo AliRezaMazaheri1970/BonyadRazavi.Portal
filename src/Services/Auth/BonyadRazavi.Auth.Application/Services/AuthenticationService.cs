@@ -7,11 +7,16 @@ namespace BonyadRazavi.Auth.Application.Services;
 public sealed class AuthenticationService : IAuthenticationService
 {
     private readonly IUserRepository _userRepository;
+    private readonly ICompanyDirectoryService _companyDirectoryService;
     private readonly IPasswordHasher _passwordHasher;
 
-    public AuthenticationService(IUserRepository userRepository, IPasswordHasher passwordHasher)
+    public AuthenticationService(
+        IUserRepository userRepository,
+        ICompanyDirectoryService companyDirectoryService,
+        IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
+        _companyDirectoryService = companyDirectoryService;
         _passwordHasher = passwordHasher;
     }
 
@@ -31,10 +36,15 @@ public sealed class AuthenticationService : IAuthenticationService
             return AuthenticationResult.Fail("نام کاربری یا کلمه عبور اشتباه است.");
         }
 
-        if (user.Company is null || !user.Company.IsActive)
+        if (user.CompanyCode == Guid.Empty)
         {
             return AuthenticationResult.Fail("کاربر به شرکت فعال متصل نشده است.");
         }
+
+        var companyDirectory = await _companyDirectoryService.FindByCodeAsync(
+            user.CompanyCode,
+            cancellationToken);
+        var companyName = companyDirectory?.CompanyName;
 
         return AuthenticationResult.Success(
             new AuthenticatedUser(
@@ -42,7 +52,7 @@ public sealed class AuthenticationService : IAuthenticationService
                 user.UserName,
                 user.DisplayName,
                 user.Roles,
-                user.Company.CompanyCode,
-                user.Company.CompanyName));
+                user.CompanyCode,
+                companyName));
     }
 }

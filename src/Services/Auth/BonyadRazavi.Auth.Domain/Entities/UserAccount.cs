@@ -33,11 +33,11 @@ public sealed class UserAccount
     public string DisplayName { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
     public List<string> Roles { get; private set; } = [];
+    public Guid CompanyCode { get; private set; }
     public bool IsActive { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime? UpdatedAtUtc { get; private set; }
 
-    public UserCompany? Company { get; private set; }
     public ICollection<UserActionLog> ActionLogs { get; private set; } = new List<UserActionLog>();
     public ICollection<UserRefreshToken> RefreshTokens { get; private set; } = new List<UserRefreshToken>();
 
@@ -61,15 +61,7 @@ public sealed class UserAccount
 
     public void SetCompany(Guid companyCode, string? companyName, bool isActive)
     {
-        if (Company is null)
-        {
-            Company = new UserCompany(Id, companyCode, companyName, isActive);
-        }
-        else
-        {
-            Company.Update(companyCode, companyName, isActive);
-        }
-
+        CompanyCode = companyCode;
         UpdatedAtUtc = DateTime.UtcNow;
     }
 }

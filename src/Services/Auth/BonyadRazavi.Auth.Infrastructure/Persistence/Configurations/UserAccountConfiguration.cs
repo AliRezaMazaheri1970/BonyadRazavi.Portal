@@ -65,10 +65,10 @@ public sealed class UserAccountConfiguration : IEntityTypeConfiguration<UserAcco
             .IsRequired();
         rolesProperty.Metadata.SetValueComparer(rolesComparer);
 
-        builder.HasOne(user => user.Company)
-            .WithOne(company => company.User)
-            .HasForeignKey<UserCompany>(company => company.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Property(user => user.CompanyCode)
+            .IsRequired();
+
+        builder.HasIndex(user => user.CompanyCode);
 
         builder.HasMany(user => user.ActionLogs)
             .WithOne(log => log.User)

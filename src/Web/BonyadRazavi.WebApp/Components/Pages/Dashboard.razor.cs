@@ -51,8 +51,16 @@ namespace BonyadRazavi.WebApp.Components.Pages
             }
         }
 
-        private void SignOut()
+        private async Task SignOutAsync()
         {
+            if (UserSession.Current is not null &&
+                !string.IsNullOrWhiteSpace(UserSession.Current.RefreshToken))
+            {
+                await AuthApiClient.RevokeAsync(
+                    UserSession.Current.RefreshToken,
+                    reason: "Logout");
+            }
+
             UserSession.SignOut();
             Navigation.NavigateTo("/login");
         }

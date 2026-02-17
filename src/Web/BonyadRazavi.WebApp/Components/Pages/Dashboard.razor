@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject UserSession UserSession
+@inject AuthApiClient AuthApiClient
 @inject NavigationManager Navigation
 
 <PageTitle>داشبورد</PageTitle>
@@ -36,7 +37,11 @@ else
                     </ul>
                 </div>
 
+<<<<<<< Updated upstream
                 <button class="side-exit" @onclick="SignOut"> *@
+=======
+                <button class="side-exit" @onclick="SignOutAsync">
+>>>>>>> Stashed changes
                     @* <span aria-hidden="true">↩</span> *@
             @*         <img class="icon-logout" src="Images/dashboard/logout.png" />
                     <span> خروج</span>

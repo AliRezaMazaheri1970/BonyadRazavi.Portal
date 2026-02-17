@@ -16,7 +16,6 @@ public sealed class SqlUserRepository : IUserRepository
     public Task<UserAccount?> FindByUserNameAsync(string userName, CancellationToken cancellationToken = default)
     {
         return _dbContext.Users
-            .Include(user => user.Company)
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 user => user.UserName == userName && user.IsActive,

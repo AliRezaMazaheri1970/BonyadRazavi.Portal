@@ -11,7 +11,6 @@ public sealed class AuthDbContext : DbContext
     }
 
     public DbSet<UserAccount> Users => Set<UserAccount>();
-    public DbSet<UserCompany> UserCompanies => Set<UserCompany>();
     public DbSet<UserActionLog> UserActionLogs => Set<UserActionLog>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
 

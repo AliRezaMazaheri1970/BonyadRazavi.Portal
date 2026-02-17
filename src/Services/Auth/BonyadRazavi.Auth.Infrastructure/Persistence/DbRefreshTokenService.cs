@@ -10,15 +10,18 @@ namespace BonyadRazavi.Auth.Infrastructure.Persistence;
 public sealed class DbRefreshTokenService : IRefreshTokenService
 {
     private readonly AuthDbContext _dbContext;
+    private readonly ICompanyDirectoryService _companyDirectoryService;
     private readonly IOptions<RefreshTokenOptions> _options;
     private readonly ILogger<DbRefreshTokenService> _logger;
 
     public DbRefreshTokenService(
         AuthDbContext dbContext,
+        ICompanyDirectoryService companyDirectoryService,
         IOptions<RefreshTokenOptions> options,
         ILogger<DbRefreshTokenService> logger)
     {
         _dbContext = dbContext;
+        _companyDirectoryService = companyDirectoryService;
         _options = options;
         _logger = logger;
     }
@@ -63,7 +66,6 @@ public sealed class DbRefreshTokenService : IRefreshTokenService
         var tokenHash = RefreshTokenCrypto.HashToken(refreshToken.Trim());
         var refreshTokenEntity = await _dbContext.UserRefreshTokens
             .Include(token => token.User)
-                .ThenInclude(user => user.Company)
             .FirstOrDefaultAsync(token => token.TokenHash == tokenHash, cancellationToken);
 
         if (refreshTokenEntity is null)
@@ -91,7 +93,7 @@ public sealed class DbRefreshTokenService : IRefreshTokenService
         }
 
         var user = refreshTokenEntity.User;
-        if (!user.IsActive || user.Company is null || !user.Company.IsActive)
+        if (!user.IsActive || user.CompanyCode == Guid.Empty)
         {
             refreshTokenEntity.Revoke(now, NormalizeIp(clientIp), "InactiveUser");
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -116,13 +118,14 @@ public sealed class DbRefreshTokenService : IRefreshTokenService
         _dbContext.UserRefreshTokens.Add(newToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        var company = await _companyDirectoryService.FindByCodeAsync(user.CompanyCode, cancellationToken);
         var authenticatedUser = new AuthenticatedUser(
             user.Id,
             user.UserName,
             user.DisplayName,
             user.Roles,
-            user.Company.CompanyCode,
-            user.Company.CompanyName);
+            user.CompanyCode,
+            company?.CompanyName);
 
         return RefreshTokenRotateResult.Success(
             authenticatedUser,

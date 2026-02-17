@@ -3,6 +3,7 @@ using BonyadRazavi.Auth.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace BonyadRazavi.Auth.Infrastructure.Persistence;
@@ -14,6 +15,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.Configure<PersistenceOptions>(configuration.GetSection(PersistenceOptions.SectionName));
+        services.Configure<CompanyDirectoryOptions>(configuration.GetSection(CompanyDirectoryOptions.SectionName));
         services.Configure<RefreshTokenOptions>(configuration.GetSection(RefreshTokenOptions.SectionName));
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
@@ -22,7 +24,9 @@ public static class DependencyInjection
 
         if (!persistenceOptions.UseSqlServer)
         {
+            services.AddDbContext<AuthDbContext>(options => options.UseInMemoryDatabase("BonyadRazavi.Auth.InMemory"));
             services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+            services.AddSingleton<ICompanyDirectoryService, InMemoryCompanyDirectoryService>();
             services.AddSingleton<IUserActionLogService, NoOpUserActionLogService>();
             services.AddSingleton<IRefreshTokenService, InMemoryRefreshTokenService>();
             return services;
@@ -42,6 +46,31 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, SqlUserRepository>();
         services.AddScoped<IUserActionLogService, DbUserActionLogService>();
         services.AddScoped<IRefreshTokenService, DbRefreshTokenService>();
+        services.AddSingleton<ICompanyDirectoryService>(serviceProvider =>
+        {
+            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<SqlCompanyDirectoryService>();
+            var companyDirectoryOptions = configuration
+                .GetSection(CompanyDirectoryOptions.SectionName)
+                .Get<CompanyDirectoryOptions>()
+                ?? new CompanyDirectoryOptions();
+
+            var externalConnectionString =
+                Environment.GetEnvironmentVariable("LABORATORY_RASF_CONNECTION_STRING");
+            if (string.IsNullOrWhiteSpace(externalConnectionString))
+            {
+                externalConnectionString = configuration.GetConnectionString(companyDirectoryOptions.ConnectionStringName);
+            }
+
+            if (string.IsNullOrWhiteSpace(externalConnectionString))
+            {
+                logger.LogWarning(
+                    "External company directory connection string is missing. Falling back to in-memory company directory.");
+                return new InMemoryCompanyDirectoryService();
+            }
+
+            return new SqlCompanyDirectoryService(externalConnectionString, logger);
+        });
 
         return services;
     }
