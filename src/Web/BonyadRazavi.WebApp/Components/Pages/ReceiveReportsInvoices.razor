@@ -6,123 +6,141 @@
     <DashboardSidebar/>
     <div class="receive-reports">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-    <h3>لیست صورتحساب‌ها</h3>
-    <button class="btn-dashboard" @onclick="GoToDashboard">بازگشت به داشبورد</button>
-</div>
-<div class="table-scroll-container">
-<table class="invoice-table">
-    <thead>
-        <tr>
-            <th>
-                شماره صورتحساب
-                <button class="sort-btn" @onclick='() => Sort("Name")'>@GetSortIcon("Name")</button>
-            </th>
-            <th>
-                تاریخ صورتحساب
-                <button class="sort-btn" @onclick='() => Sort("Date")'>@GetSortIcon("Date")</button>
-            </th>
-            <th>
-                شماره قرارداد
-                <button class="sort-btn" @onclick='() => Sort("Contract")'>@GetSortIcon("Contract")</button>
-            </th>
-        </tr>
-        <tr>
-            <th>
-                <input class="filter-input" @bind="searchName" @bind:event="oninput" placeholder="جستجو صورتحساب..." />
-            </th>
-            <th>
-                <input class="filter-input" @bind="searchDate" @bind:event="oninput" placeholder="جستجو تاریخ..." />
-            </th>
-            <th>
-                <input class="filter-input" @bind="searchContract" @bind:event="oninput" placeholder="جستجو قرارداد..." />
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (FilteredAndSortedInvoices.Any())
+            <h3>لیست صورتحساب‌ها</h3>
+            <button class="btn-dashboard" @onclick="GoToDashboard">بازگشت به داشبورد</button>
+        </div>
+        
+        <div class="table-scroll-container">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>شماره صورتحساب <button class="sort-btn" @onclick='() => Sort("Name")'>@GetSortIcon("Name")</button></th>
+                        <th>شماره قرارداد <button class="sort-btn" @onclick='() => Sort("Contract")'>@GetSortIcon("Contract")</button></th>
+                        <th>تاریخ صورتحساب <button class="sort-btn" @onclick='() => Sort("Date")'>@GetSortIcon("Date")</button></th>
+                        <th>عملیات</th>
+                    </tr>
+                    <tr>
+                        <th><input class="filter-input" @bind="searchName" @bind:event="oninput" placeholder="جستجو صورتحساب..." /></th>
+                        <th><input class="filter-input" @bind="searchContract" @bind:event="oninput" placeholder="جستجو قرارداد..." /></th>
+                        <th>
+                            <div class="date-range-filter">
+    
+    @* <div class="date-input-wrapper">
+        <input type="text" id="fromDate" class="filter-input-date" value="@searchFromDate" placeholder="از تاریخ..." autocomplete="off" readonly />
+        @if (!string.IsNullOrEmpty(searchFromDate))
         {
-            @foreach (var item in FilteredAndSortedInvoices)
-            {
-                <tr>
-                    <td>@item.InvoiceName</td>
-                    <td>@item.InvoiceDate.ToString("yyyy/MM/dd")</td>
-                    <td>@item.ContractNumber</td>
-                </tr>
-            }
+            <button type="button" class="btn-clear-date" @onclick="ClearFromDate" title="حذف فیلتر از تاریخ">×</button>
         }
-        else
-        {
-            <tr>
-                <td colspan="3" style="text-align:center;">داده‌ای یافت نشد!</td>
-            </tr>
-        }
-    </tbody>
-</table>
+    </div> *@
+
+   <div class="date-input-wrapper">
+    <input type="text" data-jdp id="fromDate" class="filter-input-date" value="@searchFromDate" placeholder="از تاریخ..." autocomplete="off" readonly />
+    @if (!string.IsNullOrEmpty(searchFromDate))
+    {
+        <button type="button" class="btn-clear-date" @onclick="ClearFromDate" title="حذف فیلتر از تاریخ">×</button>
+    }
 </div>
+
+<div class="date-input-wrapper">
+    <input type="text" data-jdp id="toDate" class="filter-input-date" value="@searchToDate" placeholder="تا تاریخ..." autocomplete="off" readonly />
+    @if (!string.IsNullOrEmpty(searchToDate))
+    {
+        <button type="button" class="btn-clear-date" @onclick="ClearToDate" title="حذف فیلتر تا تاریخ">×</button>
+    }
+</div>
+
+</div>
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (FilteredAndSortedInvoices.Any())
+                    {
+                        @foreach (var item in FilteredAndSortedInvoices)
+                        {
+                            <tr>
+                                <td>@item.InvoiceName</td>
+                                <td>@item.ContractNumber</td>
+                                <td>@item.InvoiceDate.ToString("yyyy/MM/dd")</td>
+                                <td><button class="btn-download" @onclick="() => DownloadInvoice(item)">دانلود ↓</button></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="4" style="text-align:center;">داده‌ای یافت نشد!</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <style>
-    .receive-reports-page{
-        display: flex;
-        padding: 2rem;
-        gap: 3rem;
-
-    }
-    .receive-reports{
-        background: #ababf2;
-        padding: 2rem;
-        border-radius: 25px;
-        box-shadow: 0 0 7px 1px #6855ee;
-        width: 100%;
-        
-    }
-    .table-scroll-container {
-    max-height: 850px; /* این عدد را می‌توانید بسته به نیازتان تغییر دهید */
-    overflow-y: auto; /* ایجاد اسکرول عمودی در صورت نیاز */
-    overflow-x: hidden;
-    border: 1px solid #ddd;
-    border-radius: 8px; /* برای زیبایی لبه‌های جدول */
-}
-.invoice-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.invoice-table th {
-    /* برای جلوگیری از شیشه‌ای شدن هدر هنگام اسکرول */
-    background-color: #fff; 
-    position: sticky;
-}
-
-/* ثابت کردن ردیف اول (عناوین) */
-.invoice-table thead tr:nth-child(1) th {
-    top: 0;
-    z-index: 11;
-}
-
-/* ثابت کردن ردیف دوم (فیلترها) - عدد 42px ارتفاع تقریبی ردیف اول است */
-.invoice-table thead tr:nth-child(2) th {
-    top: 42px; 
-    z-index: 10;
-    border-top: none; /* برای یکپارچگی ظاهری */
-}
+    /* استایل‌های قبلی شما حفظ شده‌اند */
+    .receive-reports-page { display: flex; padding: 2rem; gap: 3rem; }
+    .receive-reports { background: #ababf2; padding: 2rem; border-radius: 25px; box-shadow: 0 0 7px 1px #6855ee; width: 100%; }
+    .table-scroll-container { max-height: 850px; overflow-y: auto; overflow-x: hidden; border: 1px solid #ddd; border-radius: 8px; background: #fff;}
     .invoice-table { width: 100%; border-collapse: collapse; direction: rtl; text-align: center; font-family: Tahoma, sans-serif; }
-    .invoice-table th, .invoice-table td { border: 1px solid #ddd; padding: 8px; }
-    .invoice-table th { background-color: #fff; }
-
-
-   .invoice-table tbody tr:nth-child(even) {
-  background-color: #fff;
-}
-
-.invoice-table tbody tr:nth-child(odd) {
-  background-color: #ececec;
-}
-
+    .invoice-table thead { position: sticky; top: 0; z-index: 10; }
+    .invoice-table th { background-color: #fff; position: sticky; border: 1px solid #ddd; padding: 8px; }
+    .invoice-table td { border: 1px solid #ddd; padding: 8px; }
+    .invoice-table thead tr:nth-child(1) th { top: 0; z-index: 11; }
+    .invoice-table thead tr:nth-child(2) th { top: 46px; z-index: 10; border-top: none; }
+    .invoice-table tbody tr:nth-child(even) { background-color: #fff; }
+    .invoice-table tbody tr:nth-child(odd) { background-color: #f0f2fb; }
+    .invoice-table tbody tr:hover { background-color: #e2e6f9; }
     .filter-input { width: 90%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+    .date-range-filter { display: flex; gap: 5px; justify-content: center; }
     .sort-btn { cursor: pointer; border: none; background: transparent; float: left; font-weight: bold; }
     .btn-dashboard { background-color: #2b24ba; color: white; border: none; padding: 8px 16px; border-radius: 15px; cursor: pointer; font-family: inherit; }
     .btn-dashboard:hover { background-color: #2242a3; }
+    .btn-download { background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.3s; }
+    .btn-download:hover { background-color: #218838; }
+
+   /* استایل‌های مربوط به دکمه حذف و باکس تاریخ */
+    .date-input-wrapper {
+        position: relative;
+        display: inline-block;
+        width:100%;
+    }
+
+    .btn-clear-date {
+        position: absolute;
+        top: 50%;
+        right: 5px; /* دکمه ضربدر در سمت راست قرار می‌گیرد */
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #ff4d4f;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0 5px;
+        line-height: 1;
+        z-index: 2;
+        transition: color 0.3s;
+    }
+
+    .btn-clear-date:hover {
+        color: #cf1322;
+    }
+
+    /* آپدیت ظاهر اینپوت برای جا دادن آیکون و دکمه ضربدر */
+    .filter-input-date { 
+        width: 100%; 
+        padding: 4px 8px; 
+        padding-right: 25px; /* ایجاد فضا در سمت راست برای دکمه ضربدر */
+        padding-left: 30px; /* ایجاد فضا در سمت چپ برای آیکون تقویم */
+        border: 1px solid #ccc; 
+        border-radius: 4px; 
+        font-size: 0.85rem; 
+        background-color: white;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 8px center; /* آیکون تقویم در سمت چپ */
+        cursor: pointer;
+        text-align: right;
+        color: #333;
+    }
 </style>

@@ -1,6 +1,5 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,17 +9,46 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+
+    <link rel="stylesheet" href="https://unpkg.com/@@majidh1/jalalidatepicker/dist/jalalidatepicker.min.css">
+
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["BonyadRazavi.WebApp.styles.css"]" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
 </head>
-
 <body>
     <Routes />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
-</body>
 
+    <script src="https://unpkg.com/@@majidh1/jalalidatepicker/dist/jalalidatepicker.min.js"></script>
+
+    <script>
+        // ۱. فعال‌سازی کلی تقویم جلالی با ظاهر مدرن
+        jalaliDatepicker.startWatch({
+        separatorChar: "/", // جداکننده تاریخ
+        autoHide: true,     // بستن خودکار پس از انتخاب روز
+        showTodayBtn: true, // نمایش دکمه امروز در پایین تقویم
+        });
+
+        // ۲. تابع متصل کردن تقویم به کدهای سی‌شارپ
+        window.initShamsiPicker = (id, dotnetRef, methodName) => {
+        const el = document.getElementById(id);
+        if (el) {
+        // به محض تغییر تاریخ، مقدار به سی‌شارپ فرستاده می‌شود
+        el.addEventListener('jdp:change', function(e) {
+        dotnetRef.invokeMethodAsync(methodName, e.target.value);
+        });
+        }
+        };
+
+        // ۳. تابع جاوااسکریپتی برای خالی کردن اینپوت هنگام زدن دکمه ضربدر
+        window.clearInputValue = (id) => {
+        const el = document.getElementById(id);
+        if (el) { el.value = ''; }
+        };
+    </script>
+</body>
 </html>
