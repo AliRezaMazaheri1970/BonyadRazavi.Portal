@@ -103,7 +103,7 @@ namespace BonyadRazavi.WebApp.Components.Pages
         private void Sort(string column) { if (sortColumn == column) isAscending = !isAscending; else { sortColumn = column; isAscending = true; } }
         private string GetSortIcon(string column) { if (sortColumn != column) return "↕"; return isAscending ? "↑" : "↓"; }
         private void GoToDashboard() { NavigationManager.NavigateTo("/dashboard"); }
-        private void DownloadInvoice(Invoice selectedInvoice) { Console.WriteLine($"Downloading invoice for: {selectedInvoice.ContractNumber}"); }
+        //private void DownloadInvoice(Invoice selectedInvoice) { Console.WriteLine($"Downloading invoice for: {selectedInvoice.ContractNumber}"); }
 
         public void Dispose() { dotNetRef?.Dispose(); }
 
@@ -124,6 +124,32 @@ namespace BonyadRazavi.WebApp.Components.Pages
             await JS.InvokeVoidAsync("clearInputValue", "toDate");
 
             StateHasChanged(); 
+        }
+
+        // متد دانلود صورتحساب تغییر یافت
+        private async Task DownloadInvoice(Invoice selectedInvoice)
+        {
+            // ۱. تولید محتوای فایل (در پروژه واقعی، اینجا فایل PDF یا اکسل تولید می‌شود)
+            string fileContent = $"بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ\n\n" +
+                                 $"--- جزئیات صورتحساب ---\n" +
+                                 $"عنوان: {selectedInvoice.InvoiceName}\n" +
+                                 $"شماره قرارداد: {selectedInvoice.ContractNumber}\n" +
+                                 $"تاریخ ثبت: {selectedInvoice.InvoiceDate.ToString("yyyy/MM/dd")}\n" +
+                                 $"-----------------------\n" +
+                                 $"سیستم یکپارچه گزارشات";
+
+            // تبدیل متن به آرایه‌ای از بایت‌ها
+            var fileBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
+
+            // ۲. تعیین نام فایلی که کاربر دانلود خواهد کرد
+            string fileName = $"Invoice_{selectedInvoice.ContractNumber}.txt";
+
+            // ۳. ایجاد یک استریم (جریان داده) و ارسال آن به مرورگر کاربر از طریق جاوااسکریپت
+            using var stream = new MemoryStream(fileBytes);
+            using var streamRef = new DotNetStreamReference(stream: stream);
+
+            // فراخوانی تابع جاوااسکریپتی که در فایل App.razor نوشتیم
+            await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
         }
     }
 }
