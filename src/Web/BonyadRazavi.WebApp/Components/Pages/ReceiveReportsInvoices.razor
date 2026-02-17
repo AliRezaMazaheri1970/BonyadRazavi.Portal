@@ -1,0 +1,128 @@
+﻿@page "/reports"
+@using BonyadRazavi.WebApp.Components.Shared
+@rendermode InteractiveServer
+
+<div class="receive-reports-page">
+    <DashboardSidebar/>
+    <div class="receive-reports">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+    <h3>لیست صورتحساب‌ها</h3>
+    <button class="btn-dashboard" @onclick="GoToDashboard">بازگشت به داشبورد</button>
+</div>
+<div class="table-scroll-container">
+<table class="invoice-table">
+    <thead>
+        <tr>
+            <th>
+                شماره صورتحساب
+                <button class="sort-btn" @onclick='() => Sort("Name")'>@GetSortIcon("Name")</button>
+            </th>
+            <th>
+                تاریخ صورتحساب
+                <button class="sort-btn" @onclick='() => Sort("Date")'>@GetSortIcon("Date")</button>
+            </th>
+            <th>
+                شماره قرارداد
+                <button class="sort-btn" @onclick='() => Sort("Contract")'>@GetSortIcon("Contract")</button>
+            </th>
+        </tr>
+        <tr>
+            <th>
+                <input class="filter-input" @bind="searchName" @bind:event="oninput" placeholder="جستجو صورتحساب..." />
+            </th>
+            <th>
+                <input class="filter-input" @bind="searchDate" @bind:event="oninput" placeholder="جستجو تاریخ..." />
+            </th>
+            <th>
+                <input class="filter-input" @bind="searchContract" @bind:event="oninput" placeholder="جستجو قرارداد..." />
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (FilteredAndSortedInvoices.Any())
+        {
+            @foreach (var item in FilteredAndSortedInvoices)
+            {
+                <tr>
+                    <td>@item.InvoiceName</td>
+                    <td>@item.InvoiceDate.ToString("yyyy/MM/dd")</td>
+                    <td>@item.ContractNumber</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3" style="text-align:center;">داده‌ای یافت نشد!</td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+    </div>
+</div>
+
+<style>
+    .receive-reports-page{
+        display: flex;
+        padding: 2rem;
+        gap: 3rem;
+
+    }
+    .receive-reports{
+        background: #ababf2;
+        padding: 2rem;
+        border-radius: 25px;
+        box-shadow: 0 0 7px 1px #6855ee;
+        width: 100%;
+        
+    }
+    .table-scroll-container {
+    max-height: 850px; /* این عدد را می‌توانید بسته به نیازتان تغییر دهید */
+    overflow-y: auto; /* ایجاد اسکرول عمودی در صورت نیاز */
+    overflow-x: hidden;
+    border: 1px solid #ddd;
+    border-radius: 8px; /* برای زیبایی لبه‌های جدول */
+}
+.invoice-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.invoice-table th {
+    /* برای جلوگیری از شیشه‌ای شدن هدر هنگام اسکرول */
+    background-color: #fff; 
+    position: sticky;
+}
+
+/* ثابت کردن ردیف اول (عناوین) */
+.invoice-table thead tr:nth-child(1) th {
+    top: 0;
+    z-index: 11;
+}
+
+/* ثابت کردن ردیف دوم (فیلترها) - عدد 42px ارتفاع تقریبی ردیف اول است */
+.invoice-table thead tr:nth-child(2) th {
+    top: 42px; 
+    z-index: 10;
+    border-top: none; /* برای یکپارچگی ظاهری */
+}
+    .invoice-table { width: 100%; border-collapse: collapse; direction: rtl; text-align: center; font-family: Tahoma, sans-serif; }
+    .invoice-table th, .invoice-table td { border: 1px solid #ddd; padding: 8px; }
+    .invoice-table th { background-color: #fff; }
+
+
+   .invoice-table tbody tr:nth-child(even) {
+  background-color: #fff;
+}
+
+.invoice-table tbody tr:nth-child(odd) {
+  background-color: #ececec;
+}
+
+    .filter-input { width: 90%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+    .sort-btn { cursor: pointer; border: none; background: transparent; float: left; font-weight: bold; }
+    .btn-dashboard { background-color: #2b24ba; color: white; border: none; padding: 8px 16px; border-radius: 15px; cursor: pointer; font-family: inherit; }
+    .btn-dashboard:hover { background-color: #2242a3; }
+</style>

@@ -1,0 +1,30 @@
+﻿@using Microsoft.AspNetCore.Components.Routing
+@inject UserSession UserSession
+@inject NavigationManager Navigation
+
+<aside class="dashboard-side">
+    <div class="side-top">
+        <img src="Images/logo1.png" class="side-logo" alt="لوگوی بنیاد" />
+
+        <ul class="side-menu">
+            @foreach (var item in SidebarItems)
+            {
+                <li class="p-1">
+                    <NavLink href="@item.Route"
+                             class="side-link"
+                             ActiveClass="active-link"
+                             style="color: #fff; text-decoration: none; text-shadow: 0px 0px 3px rgba(50, 60, 196, 1); font-size:1rem;">
+                        @item.Title
+                    </NavLink>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <button class="side-exit" @onclick="SignOut">
+        <img class="icon-logout" src="Images/dashboard/logout.png" />
+        <span> خروج</span>
+    </button>
+</aside>
+
+

@@ -1,4 +1,5 @@
 ﻿@page "/dashboard"
+@using BonyadRazavi.WebApp.Components.Shared
 @using Microsoft.AspNetCore.Components.Routing
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject UserSession UserSession
@@ -18,7 +19,7 @@ else
 {
     <section class="portal-dashboard">
         <div class="dashboard-frame">
-            <aside class="dashboard-side">
+            @* <aside class="dashboard-side">
                 <div class="side-top">
                     <img src="Images/logo1.png" class="side-logo" alt="لوگوی بنیاد" />
 
@@ -35,12 +36,14 @@ else
                     </ul>
                 </div>
 
-                <button class="side-exit" @onclick="SignOut">
+                <button class="side-exit" @onclick="SignOut"> *@
                     @* <span aria-hidden="true">↩</span> *@
-                    <img class="icon-logout" src="Images/dashboard/logout.png" />
+            @*         <img class="icon-logout" src="Images/dashboard/logout.png" />
                     <span> خروج</span>
                 </button>
-            </aside>
+            </aside> *@
+
+            <DashboardSidebar/>
 
             <main class="dashboard-main">
                 <header class="header-dashboard">
