@@ -39,6 +39,7 @@ public sealed class UserAccount
 
     public UserCompany? Company { get; private set; }
     public ICollection<UserActionLog> ActionLogs { get; private set; } = new List<UserActionLog>();
+    public ICollection<UserRefreshToken> RefreshTokens { get; private set; } = new List<UserRefreshToken>();
 
     public void SetPasswordHash(string passwordHash)
     {

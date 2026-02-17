@@ -15,17 +15,20 @@ namespace BonyadRazavi.Auth.Api.Controllers;
 public sealed class AuthController : ControllerBase
 {
     private readonly IAuthenticationService _authenticationService;
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly JwtTokenFactory _jwtTokenFactory;
     private readonly ILoginLockoutService _loginLockoutService;
     private readonly IUserActionLogService _userActionLogService;
 
     public AuthController(
         IAuthenticationService authenticationService,
+        IRefreshTokenService refreshTokenService,
         JwtTokenFactory jwtTokenFactory,
         ILoginLockoutService loginLockoutService,
         IUserActionLogService userActionLogService)
     {
         _authenticationService = authenticationService;
+        _refreshTokenService = refreshTokenService;
         _jwtTokenFactory = jwtTokenFactory;
         _loginLockoutService = loginLockoutService;
         _userActionLogService = userActionLogService;
@@ -48,6 +51,7 @@ public sealed class AuthController : ControllerBase
 
         var userName = request.UserName?.Trim() ?? string.Empty;
         var clientIp = RequestAuditMetadataFactory.ResolveClientIp(HttpContext);
+        var userAgent = Request.Headers.UserAgent.ToString();
 
         var lockoutStatus = _loginLockoutService.GetStatus(userName, clientIp);
         if (lockoutStatus.IsLocked)
@@ -83,6 +87,16 @@ public sealed class AuthController : ControllerBase
         }
 
         _loginLockoutService.RegisterSuccess(userName, clientIp);
+        var token = _jwtTokenFactory.Create(result.User);
+        var refreshToken = await _refreshTokenService.IssueAsync(
+            result.User,
+            clientIp,
+            userAgent,
+            cancellationToken);
+
+        token.RefreshToken = refreshToken.Token;
+        token.RefreshTokenExpiresAtUtc = refreshToken.ExpiresAtUtc;
+
         await _userActionLogService.LogAsync(
             result.User.Id,
             AuditActionTypes.Login,
@@ -91,12 +105,109 @@ public sealed class AuthController : ControllerBase
                 ["userName"] = result.User.UserName,
                 ["companyCode"] = result.User.CompanyCode,
                 ["companyName"] = result.User.CompanyName,
-                ["roles"] = result.User.Roles
+                ["roles"] = result.User.Roles,
+                ["accessTokenId"] = token.AccessTokenId
             }),
             cancellationToken);
 
-        var token = _jwtTokenFactory.Create(result.User);
         return Ok(token);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<LoginResponse>> Refresh(
+        [FromBody] RefreshTokenRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var clientIp = RequestAuditMetadataFactory.ResolveClientIp(HttpContext);
+        var userAgent = Request.Headers.UserAgent.ToString();
+        var rotateResult = await _refreshTokenService.RotateAsync(
+            request.RefreshToken,
+            clientIp,
+            userAgent,
+            cancellationToken);
+
+        if (!rotateResult.Succeeded || rotateResult.User is null || rotateResult.RefreshToken is null)
+        {
+            await _userActionLogService.LogAsync(
+                userId: null,
+                actionType: AuditActionTypes.TokenRefresh,
+                metadata: RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+                {
+                    ["isSuccess"] = false,
+                    ["reason"] = rotateResult.ErrorMessage
+                }),
+                cancellationToken);
+
+            return Unauthorized(new ProblemDetails
+            {
+                Title = "تمدید نشست ناموفق",
+                Detail = rotateResult.ErrorMessage ?? "Refresh token معتبر نیست.",
+                Status = StatusCodes.Status401Unauthorized
+            });
+        }
+
+        var response = _jwtTokenFactory.Create(rotateResult.User);
+        response.RefreshToken = rotateResult.RefreshToken.Token;
+        response.RefreshTokenExpiresAtUtc = rotateResult.RefreshToken.ExpiresAtUtc;
+
+        await _userActionLogService.LogAsync(
+            rotateResult.User.Id,
+            AuditActionTypes.TokenRefresh,
+            RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+            {
+                ["isSuccess"] = true,
+                ["userName"] = rotateResult.User.UserName,
+                ["companyCode"] = rotateResult.User.CompanyCode,
+                ["accessTokenId"] = response.AccessTokenId
+            }),
+            cancellationToken);
+
+        return Ok(response);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("revoke")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Revoke(
+        [FromBody] RevokeRefreshTokenRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var clientIp = RequestAuditMetadataFactory.ResolveClientIp(HttpContext);
+        var userAgent = Request.Headers.UserAgent.ToString();
+        var revokeResult = await _refreshTokenService.RevokeAsync(
+            request.RefreshToken,
+            request.Reason,
+            clientIp,
+            userAgent,
+            cancellationToken);
+
+        await _userActionLogService.LogAsync(
+            RequestAuditMetadataFactory.ResolveAuthenticatedUserId(User),
+            AuditActionTypes.TokenRevoke,
+            RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+            {
+                ["isSuccess"] = revokeResult.Succeeded,
+                ["reason"] = revokeResult.ErrorMessage ?? request.Reason
+            }),
+            cancellationToken);
+
+        // Always return 204 to avoid token-existence probing.
+        return NoContent();
     }
 
     [Authorize]

@@ -4,6 +4,8 @@ public static class AuditActionTypes
 {
     public const string Login = "Login";
     public const string LoginFailed = "LoginFailed";
+    public const string TokenRefresh = "TokenRefresh";
+    public const string TokenRevoke = "TokenRevoke";
     public const string ViewProfile = "ViewProfile";
     public const string ViewUsers = "ViewUsers";
     public const string ViewUser = "ViewUser";

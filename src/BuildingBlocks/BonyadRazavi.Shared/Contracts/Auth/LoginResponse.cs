@@ -3,7 +3,10 @@ namespace BonyadRazavi.Shared.Contracts.Auth;
 public sealed class LoginResponse
 {
     public string AccessToken { get; set; } = string.Empty;
+    public string AccessTokenId { get; set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; set; }
+    public string RefreshToken { get; set; } = string.Empty;
+    public DateTime RefreshTokenExpiresAtUtc { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public List<string> Roles { get; set; } = [];

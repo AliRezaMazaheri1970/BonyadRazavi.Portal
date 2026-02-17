@@ -49,4 +49,58 @@ public sealed class AuthApiClient
 
         return LoginApiResult.Failed($"{errorText} (HTTP {(int)response.StatusCode})", (int)response.StatusCode);
     }
+
+    public async Task<LoginApiResult> RefreshAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await _httpClient.PostAsJsonAsync(
+            "api/auth/refresh",
+            new RefreshTokenRequest { RefreshToken = refreshToken },
+            cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var payload = await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken);
+            if (payload is null)
+            {
+                return LoginApiResult.Failed("پاسخ سرویس تمدید نشست معتبر نیست.");
+            }
+
+            return LoginApiResult.Succeeded(payload);
+        }
+
+        ProblemDetails? problem = null;
+        try
+        {
+            problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
+        }
+        catch
+        {
+            // Ignore invalid problem-details payload and use default text.
+        }
+
+        var errorText = !string.IsNullOrWhiteSpace(problem?.Detail)
+            ? problem.Detail
+            : "تمدید نشست ناموفق بود.";
+
+        return LoginApiResult.Failed($"{errorText} (HTTP {(int)response.StatusCode})", (int)response.StatusCode);
+    }
+
+    public async Task<bool> RevokeAsync(
+        string refreshToken,
+        string? reason = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await _httpClient.PostAsJsonAsync(
+            "api/auth/revoke",
+            new RevokeRefreshTokenRequest
+            {
+                RefreshToken = refreshToken,
+                Reason = reason
+            },
+            cancellationToken);
+
+        return response.IsSuccessStatusCode;
+    }
 }
