@@ -3,7 +3,6 @@
 @using Microsoft.AspNetCore.Components.Routing
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject UserSession UserSession
-@inject AuthApiClient AuthApiClient
 @inject NavigationManager Navigation
 
 <PageTitle>داشبورد</PageTitle>
@@ -41,8 +40,6 @@ else
 
                 <h1 class="welcome-title">به پرتال بنیاد علوم کاربردی رازی خوش آمدید</h1>
 
-                @* <button class="chat-entry" type="button">ورود به بخش چت آنلاین</button> *@
-
                 <div class="service-grid">
                     @foreach (var tile in DashboardTiles)
                     {
@@ -54,12 +51,7 @@ else
                     }
                 </div>
 
-                @* <footer class="today-strip">
-                    تاریخ امروز : @GetTodayPersianText()
-                </footer> *@
             </main>
         </div>
     </section>
 }
-
-

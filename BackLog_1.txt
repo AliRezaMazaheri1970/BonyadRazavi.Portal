@@ -1,0 +1,172 @@
+# RoadMap.txt — Backlog
+# محدوده (Scope): مدیریت کاربران + پروفایل + پایدارسازی احراز هویت (Blazor + C# Backend)
+# یادداشت‌ها:
+# - UI: Blazor (InteractiveServer) + AuthenticationStateProvider برای محافظت صفحات و منوها
+# - مشکل فعلی: HTTP 500 بعد از لاگین (پیش‌نیاز توسعه قابلیت‌های امنیتی)
+# - نقش‌ها (Roles): User / Admin
+# - Definition of Done (DoD):
+#   - لاگ‌گیری سمت سرور + مدیریت خطا تمیز + پیام کاربرپسند در UI
+#   - کنترل دسترسی هم در API و هم در UI routes
+#   - تست حداقلی برای جریان‌های حساس (Change/Reset Password + Admin Access)
+#   - Audit Log برای عملیات حساس (Password/Role/Status Changes)
+#   - مستند شدن قراردادهای API (Request/Response) و سناریوهای خطا
+
+================================================================================
+[EPIC-0] پایدارسازی جریان احراز هویت (رفع خطای 500 بعد از لاگین)  [PRIORITY: P0]
+# خروجی (Deliverable): Login -> Dashboard پایدار + قرارداد خطای یکپارچه
+================================================================================
+
+[US-0.1] ریشه‌یابی و رفع خطای 500 پس از لاگین
+- T0.1.1 فعال‌سازی/بررسی لاگ‌های سرور (Error + Exception Stacktrace در Dev)
+- T0.1.2 افزودن CorrelationId به پاسخ‌ها و لاگ‌ها + LogScope
+- T0.1.3 ردیابی مراحل پس از لاگین (Claims/Profile Fetch، Init UserSession/AuthState، Redirect to /dashboard)
+- T0.1.4 بازتولید خطا، رفع آن، و ساخت چک‌لیست Regression برای مسیر Login
+
+  معیار پذیرش:
+  - پس از لاگین موفق، /dashboard بدون 500 لود شود
+  - در صورت خطا: UI پیام امن نمایش دهد + لاگ حاوی جزئیات همراه CorrelationId باشد
+
+[US-0.2] استانداردسازی ساختار خطاهای API برای Blazor
+- T0.2.1 تعریف ApiResult (Success, Message, Errors[], CorrelationId)
+- T0.2.2 اطمینان از یکسان بودن خطاها در Auth/Profile/Admin endpoints
+- T0.2.3 مپ کردن خطا به Toast/Alert در UI (بدون نمایش Raw Exception)
+
+  معیار پذیرش:
+  - UI رفتار پیش‌بینی‌پذیر داشته باشد و هیچ Exception خامی به کاربر نرسد
+
+
+================================================================================
+[EPIC-1] پروفایل کاربری — تغییر رمز عبور (Self-Service)            [PRIORITY: P1]
+# خروجی (Deliverable): صفحه تغییر رمز + API امن + ثبت Audit
+================================================================================
+
+[US-1.1] تعریف قرارداد سرویس/API برای تغییر رمز عبور
+- T1.1.1 DTO درخواست: CurrentPassword, NewPassword, ConfirmNewPassword
+- T1.1.2 مدل پاسخ: Success + FieldErrors (WrongCurrentPassword, WeakPassword, Mismatch, ...)
+- T1.1.3 ایجاد endpoint: POST /api/account/change-password (یا متد سرویس معادل)
+
+  معیار پذیرش:
+  - قرارداد مستند و پایدار باشد؛ خطاها کاربرپسند و بدون لو دادن اطلاعات حساس باشند
+
+[US-1.2] پیاده‌سازی بک‌اند تغییر رمز + سیاست‌های امنیتی
+- T1.2.1 اعتبارسنجی رمز فعلی (Identity UserManager یا Hash اختصاصی)
+- T1.2.2 اعمال Password Policy (طول/ترکیب/لیست رمزهای ممنوع)
+- T1.2.3 بروزرسانی Hash در DB + مدیریت Session (در صورت نیاز: SignOut/Invalidate)
+- T1.2.4 Rate-limit/Throttling روی endpoint تغییر رمز
+- T1.2.5 ثبت Audit Log (UserId, Timestamp, Action=ChangePassword, ClientInfo)
+
+  معیار پذیرش:
+  - رمز فعلی صحیح -> تغییر موفق
+  - رمز فعلی غلط -> خطای تمیز و امن
+  - رمز ضعیف/عدم تطابق -> خطای سیاست
+  - پس از تغییر رمز، رفتار Session مشخص و قابل پیش‌بینی باشد
+
+[US-1.3] UI تغییر رمز عبور در Blazor
+- T1.3.1 ایجاد صفحه: /profile/change-password
+- T1.3.2 EditForm + Validation + Disable state هنگام Submit
+- T1.3.3 نمایش پیام موفقیت/خطا + پاک‌سازی فرم پس از موفقیت
+
+  معیار پذیرش:
+  - کاربر لاگین‌شده بتواند End-to-End رمز را تغییر دهد
+  - UX روان، بدون کرش و با پیام‌های درست باشد
+
+
+================================================================================
+[EPIC-2] پنل ادمین — مدیریت کاربران (CRUD + Reset Password)       [PRIORITY: P2]
+# خروجی (Deliverable): UserManagement UI + APIهای Admin + Audit
+================================================================================
+
+[US-2.1] لیست کاربران برای ادمین همراه با جستجو و صفحه‌بندی
+- T2.1.1 API: GET /api/admin/users?search=&page=&pageSize=
+- T2.1.2 بهینه‌سازی دیتابیس (Index روی Username/Email/DisplayName)
+- T2.1.3 UI: Table/DataGrid + Search + Pagination
+
+  معیار پذیرش:
+  - لیست، جستجو و صفحه‌بندی روی دیتای زیاد با سرعت مناسب کار کند
+
+[US-2.2] ایجاد کاربر جدید توسط ادمین
+- T2.2.1 فرم/مودال ساخت کاربر (Username, Email, DisplayName, Phone)
+- T2.2.2 تخصیص Role هنگام ساخت (User/Admin)
+- T2.2.3 استراتژی Password اولیه (Temporary Password یا Activation Link)
+- T2.2.4 ثبت Audit Log (AdminId, Action=CreateUser, TargetUserId)
+
+  معیار پذیرش:
+  - ادمین بتواند کاربر بسازد و کاربر جدید طبق استراتژی تعیین‌شده وارد شود
+
+[US-2.3] ویرایش اطلاعات پایه کاربر و نقش‌ها
+- T2.3.1 API: PUT /api/admin/users/{id}
+- T2.3.2 UI: مودال ویرایش + Validation
+- T2.3.3 Audit Log برای تغییرات
+- T2.3.4 جلوگیری از ارتقاء سطح دسترسی غیرمجاز (Role Change فقط برای سطح مجاز)
+
+  معیار پذیرش:
+  - تغییرات ذخیره شود؛ تغییر نقش کنترل‌شده و لاگ شده باشد
+
+[US-2.4] فعال/غیرفعال کردن کاربران (Suspend/Activate)
+- T2.4.1 API: POST /api/admin/users/{id}/toggle-active
+- T2.4.2 enforce در Login/Session (کاربر غیرفعال لاگین نکند/سشنش قطع شود)
+- T2.4.3 UI: Badge وضعیت + دکمه تغییر وضعیت
+
+  معیار پذیرش:
+  - کاربر غیرفعال دسترسی نداشته باشد؛ UI وضعیت را درست نشان دهد
+
+[US-2.5] ریست رمز عبور توسط ادمین
+- T2.5.1 API: POST /api/admin/users/{id}/reset-password
+- T2.5.2 روش: Temporary Password یا Reset Link (طبق سیاست)
+- T2.5.3 Confirmation Dialog در UI
+- T2.5.4 Audit Log (AdminId, Action=ResetPassword, TargetUserId)
+
+  معیار پذیرش:
+  - ادمین بتواند رمز را ریست کند؛ فرآیند امن باشد؛ لاگ ثبت شود
+
+[US-2.6] جلوگیری از قفل شدن دسترسی ادمین (Admin Safety)
+- T2.6.1 Seed/Bootstrap حداقل یک Admin در شروع پروژه
+- T2.6.2 جلوگیری از حذف/غیرفعال کردن آخرین Admin (Rule در Backend)
+- T2.6.3 تست سناریو: سیستم بدون Admin نشود
+
+  معیار پذیرش:
+  - همیشه حداقل یک Admin فعال وجود داشته باشد
+
+
+================================================================================
+[EPIC-3] Authorization (API + UI Route Protection)              [PRIORITY: P1]
+# خروجی (Deliverable): سیاست‌های یکپارچه دسترسی و صفحات 403
+================================================================================
+
+[US-3.1] اعمال Authorization روی API
+- T3.1.1 تعریف Policyها (AdminPolicy, AuthenticatedUserPolicy)
+- T3.1.2 محافظت /api/admin/* با AdminPolicy
+- T3.1.3 محافظت /api/account/change-password با AuthenticatedUserPolicy
+- T3.1.4 تست منفی: User عادی -> 403 برای APIهای ادمین
+
+  معیار پذیرش:
+  - امنیت در API مستقل از UI تضمین شود
+
+[US-3.2] اعمال Authorization روی UI (Routes + Sidebar)
+- T3.2.1 اتصال نقش‌ها به AuthenticationStateProvider
+- T3.2.2 نمایش/عدم نمایش آیتم‌های منو بر اساس نقش
+- T3.2.3 محافظت /admin routes + صفحه AccessDenied/403
+
+  معیار پذیرش:
+  - کاربر غیرمجاز نتواند Admin UI را باز کند (حتی با URL)
+
+
+================================================================================
+[EPIC-4] بهبود UI/UX مطابق داشبورد                               [PRIORITY: P3]
+# خروجی (Deliverable): داشبورد مینیمال‌تر + رفتار درست Sidebar
+================================================================================
+
+[US-4.1] اصلاح ارتفاع سایدبار و مشکلات ظاهری داشبورد
+- T4.1.1 اصلاح قوانین Flexbox برای پر کردن ارتفاع (stretch + height/min-height)
+- T4.1.2 تست Responsive و حالت منوی بلند (scroll strategy)
+
+  معیار پذیرش:
+  - سایدبار هم‌ارتفاع parent باشد و در سایزهای مختلف خراب نشود
+
+[US-4.2] استانداردسازی فرم‌ها و پیام‌ها
+- T4.2.1 ساخت کامپوننت مشترک Alert/Toast و Loading state
+- T4.2.2 یکسان‌سازی Spacing و Typography در فرم‌های جدید
+- T4.2.3 بازبینی پیام‌ها (فارسی روان + کوتاه + امن)
+
+  معیار پذیرش:
+  - همه فرم‌های جدید (Profile/Admin) یکدست و تمیز باشند
