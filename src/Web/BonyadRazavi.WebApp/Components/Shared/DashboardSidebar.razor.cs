@@ -12,7 +12,7 @@ namespace BonyadRazavi.WebApp.Components.Shared
             new("پذیرش آنلاین + هوش مصنوعی", "/ai-admission"),
         new("اعلام هزینه", "/cost"),
         new("پیگیری مرحله آزمایش", "/lab-tracking"),
-        new("دریافت گزارش و صورتحساب", "/reports"),
+        new("دریافت گزارش و صورتحساب", "/Receive-reports-invoices"),
         new("وضعیت مالی", "/finance"),
         new("نظرسنجی", "/survey"),
         new("شکایت", "/complaint"),

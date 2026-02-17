@@ -1,4 +1,4 @@
-﻿@page "/reports"
+﻿@page "/Receive-reports-invoices"
 @using BonyadRazavi.WebApp.Components.Shared
 @rendermode InteractiveServer
 
@@ -6,7 +6,7 @@
     <DashboardSidebar/>
     <div class="receive-reports">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-            <h3>لیست صورتحساب‌ها</h3>
+            <h3 class="title-page">لیست صورتحساب‌ها</h3>
             <button class="btn-dashboard" @onclick="GoToDashboard">بازگشت به داشبورد</button>
         </div>
         
@@ -81,8 +81,9 @@
     /* استایل‌های قبلی شما حفظ شده‌اند */
     .receive-reports-page { display: flex; padding: 2rem; gap: 3rem; }
     .receive-reports { background: #ababf2; padding: 2rem; border-radius: 25px; box-shadow: 0 0 7px 1px #6855ee; width: 100%; }
+    .title-page { color: #132f7d; }
     .table-scroll-container { max-height: 850px; overflow-y: auto; overflow-x: hidden; border: 1px solid #ddd; border-radius: 8px; background: #fff;}
-    .invoice-table { width: 100%; border-collapse: collapse; direction: rtl; text-align: center; font-family: Tahoma, sans-serif; }
+    .invoice-table { width: 100%; border-collapse: collapse; direction: rtl; text-align: center; font-family: Tahoma, sans-serif;color: #132f7d; }
     .invoice-table thead { position: sticky; top: 0; z-index: 10; }
     .invoice-table th { background-color: #fff; position: sticky; border: 1px solid #ddd; padding: 8px; }
     .invoice-table td { border: 1px solid #ddd; padding: 8px; }
