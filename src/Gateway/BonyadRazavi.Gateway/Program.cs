@@ -93,7 +93,7 @@ builder.Services
 var app = builder.Build();
 
 var allowedCidrs = builder.Configuration.GetSection("Security:AllowedCidrs").Get<string[]>()
-    ?? ["192.168.103.0/27"];
+    ?? ["192.168.93.0/27"];
 var allowedNetworks = allowedCidrs.Select(ParseIpv4Cidr).ToArray();
 var allowLoopbackInDevelopment = app.Environment.IsDevelopment() &&
     builder.Configuration.GetValue<bool>("Security:AllowLoopbackInDevelopment");

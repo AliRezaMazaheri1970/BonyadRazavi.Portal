@@ -27,7 +27,7 @@
 - Proxy route: `/api/audit/{**catch-all}` (JWT + rate-limit: api-standard)
 - Proxy route: `/{**catch-all}` -> WebApp
 - API Allowlist فعال: `/api/auth`, `/api/users`, `/api/companies`, `/api/audit`
-- IP Allowlist فعال: `192.168.103.0/27` (در Development: loopback مجاز)
+- IP Allowlist فعال: `192.168.93.0/27` (در Development: loopback مجاز)
 
 ### Auth API
 - POST `/api/auth/login` (Public)
