@@ -9,37 +9,52 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
-var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
-    ?? throw new InvalidOperationException("JWT settings are missing in Gateway.");
+var validateJwtAtGateway = builder.Configuration.GetValue("Security:ValidateJwtAtGateway", true);
 
-var envSigningKey = Environment.GetEnvironmentVariable("JWT_SIGNING_KEY");
-if (string.IsNullOrWhiteSpace(envSigningKey) || envSigningKey.Length < 32)
+if (validateJwtAtGateway)
 {
-    throw new InvalidOperationException("JWT_SIGNING_KEY environment variable is required and must be at least 32 characters.");
-}
+    var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+        ?? throw new InvalidOperationException("JWT settings are missing in Gateway.");
 
-jwtOptions.SigningKey = envSigningKey;
-
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    var envSigningKey = Environment.GetEnvironmentVariable("JWT_SIGNING_KEY");
+    if (string.IsNullOrWhiteSpace(envSigningKey) || envSigningKey.Length < 32)
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        throw new InvalidOperationException("JWT_SIGNING_KEY environment variable is required and must be at least 32 characters.");
+    }
+
+    jwtOptions.SigningKey = envSigningKey;
+
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidateLifetime = true,
-            ValidIssuer = jwtOptions.Issuer,
-            ValidAudience = jwtOptions.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
-            ClockSkew = TimeSpan.FromMinutes(1)
-        };
-    });
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidAudience = jwtOptions.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+                ClockSkew = TimeSpan.FromMinutes(1)
+            };
+        });
+}
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ApiJwt", policy => policy.RequireAuthenticatedUser());
+    options.AddPolicy("ApiJwt", policy =>
+    {
+        if (validateJwtAtGateway)
+        {
+            policy.RequireAuthenticatedUser();
+            return;
+        }
+
+        // In development we delegate JWT enforcement to downstream APIs.
+        policy.RequireAssertion(_ => true);
+    });
 });
 
 builder.Services.AddRateLimiter(options =>
@@ -134,7 +149,10 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseRateLimiter();
-app.UseAuthentication();
+if (validateJwtAtGateway)
+{
+    app.UseAuthentication();
+}
 app.UseAuthorization();
 
 app.MapGet("/gateway/health", () => Results.Ok(new

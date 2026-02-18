@@ -58,6 +58,24 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.IncludeErrorDetails = builder.Environment.IsDevelopment();
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (string.IsNullOrWhiteSpace(context.Token) &&
+                    context.Request.Headers.TryGetValue("X-Access-Token", out var tokenValues))
+                {
+                    var fallbackToken = tokenValues.ToString();
+                    if (!string.IsNullOrWhiteSpace(fallbackToken))
+                    {
+                        context.Token = fallbackToken;
+                    }
+                }
+
+                return Task.CompletedTask;
+            }
+        };
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

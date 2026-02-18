@@ -18,8 +18,9 @@ public sealed class UsersApiClient
         string accessToken,
         CancellationToken cancellationToken = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "api/users");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "api/users/");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.TryAddWithoutValidation("X-Access-Token", accessToken);
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
         if (response.IsSuccessStatusCode)
@@ -29,9 +30,7 @@ public sealed class UsersApiClient
         }
 
         var problem = await ReadProblemDetailsAsync(response, cancellationToken);
-        var message = !string.IsNullOrWhiteSpace(problem?.Detail)
-            ? problem.Detail
-            : "دریافت لیست کاربران ناموفق بود.";
+        var message = BuildFailureMessage(response, problem);
 
         return UsersApiResult.Failed(message, (int)response.StatusCode);
     }
@@ -48,5 +47,37 @@ public sealed class UsersApiClient
         {
             return null;
         }
+    }
+
+    private static string BuildFailureMessage(
+        HttpResponseMessage response,
+        ProblemDetails? problem)
+    {
+        var authChallenge = response.Headers.WwwAuthenticate.Count > 0
+            ? string.Join(" | ", response.Headers.WwwAuthenticate.Select(header => header.ToString()))
+            : null;
+
+        if (!string.IsNullOrWhiteSpace(problem?.Detail))
+        {
+            if (!string.IsNullOrWhiteSpace(authChallenge))
+            {
+                return $"{problem.Detail} ({authChallenge})";
+            }
+
+            return problem.Detail;
+        }
+
+        return response.StatusCode switch
+        {
+            System.Net.HttpStatusCode.Unauthorized =>
+                !string.IsNullOrWhiteSpace(authChallenge)
+                    ? $"نشست کاربری معتبر نیست. لطفا دوباره وارد شوید. ({authChallenge})"
+                    : "نشست کاربری معتبر نیست. لطفا دوباره وارد شوید.",
+            System.Net.HttpStatusCode.Forbidden =>
+                "شما مجوز مشاهده لیست کاربران را ندارید.",
+            System.Net.HttpStatusCode.NotFound =>
+                "مسیر سرویس مدیریت کاربران در Gateway پیدا نشد.",
+            _ => $"دریافت لیست کاربران ناموفق بود. (HTTP {(int)response.StatusCode})"
+        };
     }
 }
