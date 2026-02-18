@@ -40,7 +40,38 @@ namespace BonyadRazavi.WebApp.Components.Pages
                 new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
                 new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
                 new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
-                // بقیه داده‌های تستی شما
+              
+                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
+                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
+                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
+                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
+              
+                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
+                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
+                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
+                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
+              
+                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
+                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
+                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
+                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
+              
+                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
+                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
+                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
+                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
+              
+                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
+                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
+                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
+                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
+              
+                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
+                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
+                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
+                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
+              
+
             };
         }
 
