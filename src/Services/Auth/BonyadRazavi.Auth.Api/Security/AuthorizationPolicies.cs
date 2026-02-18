@@ -2,6 +2,7 @@ namespace BonyadRazavi.Auth.Api.Security;
 
 public static class AuthorizationPolicies
 {
+    public const string AuthenticatedUser = "Authenticated.User";
     public const string PortalAccess = "Portal.Access";
     public const string UsersRead = "Users.Read";
     public const string UsersManage = "Users.Manage";

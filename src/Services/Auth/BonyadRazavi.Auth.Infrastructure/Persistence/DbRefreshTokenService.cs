@@ -163,6 +163,38 @@ public sealed class DbRefreshTokenService : IRefreshTokenService
         return RefreshTokenRevokeResult.Success();
     }
 
+    public async Task<int> RevokeAllForUserAsync(
+        Guid userId,
+        string reason,
+        string? clientIp,
+        string? userAgent,
+        CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var normalizedReason = string.IsNullOrWhiteSpace(reason) ? "RevokedByRequest" : reason.Trim();
+        var normalizedIp = NormalizeIp(clientIp);
+
+        var activeTokens = await _dbContext.UserRefreshTokens
+            .Where(token =>
+                token.UserId == userId &&
+                token.RevokedAtUtc == null &&
+                token.ExpiresAtUtc > now)
+            .ToListAsync(cancellationToken);
+
+        if (activeTokens.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var token in activeTokens)
+        {
+            token.Revoke(now, normalizedIp, normalizedReason);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return activeTokens.Count;
+    }
+
     private async Task RevokeFamilyAsync(
         Guid tokenFamilyId,
         DateTime now,

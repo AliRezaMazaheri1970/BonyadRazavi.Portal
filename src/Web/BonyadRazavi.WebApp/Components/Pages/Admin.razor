@@ -46,17 +46,34 @@ else
                 <h1 class="welcome-title">مدیریت کاربران</h1>
 
                 <div class="service-grid" style="grid-template-columns: 1fr;">
-                    <div class="service-card" style="padding: 1.5rem; text-align: right;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem;">
-                            <h3 style="margin:0;">لیست کاربران</h3>
-                            <button class="dashboard-action" @onclick="LoadUsersAsync" disabled="@_isLoading">
-                                @(_isLoading ? "در حال بارگذاری..." : "به‌روزرسانی")
-                            </button>
+                    <div class="service-card admin-card">
+                        <div class="admin-toolbar-header">
+                            <h3>لیست کاربران</h3>
+                            <div class="admin-toolbar-actions">
+                                <button class="dashboard-action"
+                                        @onclick="OpenCreateUserDialog"
+                                        disabled="@_isLoading">
+                                    افزودن کاربر
+                                </button>
+                                <button class="dashboard-action"
+                                        @onclick="LoadUsersAsync"
+                                        disabled="@_isLoading">
+                                    @(_isLoading ? "در حال بارگذاری..." : "به‌روزرسانی")
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="admin-search-row">
+                            <input @bind="_searchTerm"
+                                   @bind:event="oninput"
+                                   placeholder="جستجو بر اساس نام کاربری یا نام نمایشی"
+                                   class="admin-search-input" />
+                            <button class="dashboard-action" @onclick="ApplySearchAsync" disabled="@_isLoading">جستجو</button>
                         </div>
 
                         @if (!string.IsNullOrWhiteSpace(_errorMessage))
                         {
-                            <div style="margin-bottom:1rem; padding:0.75rem 1rem; border-radius:8px; background:#ffe5e5; color:#7a1a1a;">
+                            <div class="admin-error">
                                 @_errorMessage
                             </div>
                         }
@@ -70,13 +87,14 @@ else
                                         <th style="padding:0.75rem; border:1px solid #d7def6;">نقش‌ها</th>
                                         <th style="padding:0.75rem; border:1px solid #d7def6;">شرکت</th>
                                         <th style="padding:0.75rem; border:1px solid #d7def6;">وضعیت</th>
+                                        <th style="padding:0.75rem; border:1px solid #d7def6;">عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @if (_users.Count == 0 && !_isLoading)
                                     {
                                         <tr>
-                                            <td colspan="5" style="padding:1rem; text-align:center; border:1px solid #d7def6;">
+                                            <td colspan="6" style="padding:1rem; text-align:center; border:1px solid #d7def6;">
                                                 کاربری برای نمایش وجود ندارد.
                                             </td>
                                         </tr>
@@ -88,10 +106,17 @@ else
                                             <tr>
                                                 <td style="padding:0.65rem; border:1px solid #d7def6;">@user.UserName</td>
                                                 <td style="padding:0.65rem; border:1px solid #d7def6;">@user.DisplayName</td>
-                                                <td style="padding:0.65rem; border:1px solid #d7def6;">@string.Join("، ", user.Roles)</td>
+                                                <td style="padding:0.65rem; border:1px solid #d7def6;">@(user.Roles.Count > 0 ? string.Join("، ", user.Roles) : "-")</td>
                                                 <td style="padding:0.65rem; border:1px solid #d7def6;">@(user.CompanyName ?? "-")</td>
                                                 <td style="padding:0.65rem; border:1px solid #d7def6;">
                                                     @(user.IsActive ? "فعال" : "غیرفعال")
+                                                </td>
+                                                <td style="padding:0.65rem; border:1px solid #d7def6;">
+                                                    <button class="dashboard-action admin-row-action"
+                                                            @onclick="@(() => OpenEditUserDialog(user))"
+                                                            disabled="@_isLoading">
+                                                        اصلاح
+                                                    </button>
                                                 </td>
                                             </tr>
                                         }
@@ -99,9 +124,128 @@ else
                                 </tbody>
                             </table>
                         </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem; gap:1rem; flex-wrap:wrap;">
+                            <div style="color:#102a5a;">
+                                مجموع کاربران: @_totalCount
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.6rem;">
+                                <button class="dashboard-action"
+                                        style="min-width:120px;"
+                                        @onclick="GoToPreviousPageAsync"
+                                        disabled="@(!CanGoToPreviousPage || _isLoading)">
+                                    صفحه قبل
+                                </button>
+                                <span style="color:#102a5a;">صفحه @_currentPage</span>
+                                <button class="dashboard-action"
+                                        style="min-width:120px;"
+                                        @onclick="GoToNextPageAsync"
+                                        disabled="@(!CanGoToNextPage || _isLoading)">
+                                    صفحه بعد
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
         </div>
     </section>
+}
+
+@if (_isEditorOpen)
+{
+    <div class="admin-modal-backdrop">
+        <div class="admin-modal">
+            <div class="admin-modal-header">
+                <h3>@UserEditorTitle</h3>
+                <button class="admin-modal-close" @onclick="CloseUserDialog" disabled="@_isSavingUser" title="بستن">
+                    ×
+                </button>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_userEditorError))
+            {
+                <div class="admin-error">
+                    @_userEditorError
+                </div>
+            }
+
+            <div class="admin-form-grid">
+                <div>
+                    <label>نام کاربری</label>
+                    <input @bind="_editorUserName"
+                           disabled="@IsEditMode"
+                           placeholder="مثال: user01" />
+                </div>
+                <div>
+                    <label>نام نمایشی</label>
+                    <input @bind="_editorDisplayName"
+                           placeholder="نام کامل کاربر" />
+                </div>
+                <div>
+                    <label>کد شرکت (GUID)</label>
+                    <input @bind="_editorCompanyCode"
+                           placeholder="در صورت نداشتن، خالی بگذارید" />
+                </div>
+                <div>
+                    <label>نام شرکت</label>
+                    <input @bind="_editorCompanyName"
+                           placeholder="اختیاری" />
+                </div>
+                <div class="admin-form-span-2">
+                    <label>
+                        @if (IsEditMode)
+                        {
+                            <span>رمز عبور جدید (اختیاری)</span>
+                        }
+                        else
+                        {
+                            <span>رمز عبور اولیه</span>
+                        }
+                    </label>
+                    <input @bind="_editorPassword"
+                           type="password"
+                           autocomplete="new-password"
+                           placeholder="حداقل 8 کاراکتر" />
+                </div>
+            </div>
+
+            <div class="admin-role-box">
+                <p>نقش‌ها</p>
+                <div class="admin-role-items">
+                    @foreach (var role in EditableRoles)
+                    {
+                        <label>
+                            <input type="checkbox"
+                                   checked="@IsRoleSelected(role)"
+                                   @onchange="args => ToggleRole(role, args)" />
+                            <span>@role</span>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="admin-toggle-row">
+                <label>
+                    <input type="checkbox" @bind="_editorIsActive" />
+                    <span>کاربر فعال باشد</span>
+                </label>
+                <label>
+                    <input type="checkbox" @bind="_editorIsCompanyActive" />
+                    <span>شرکت فعال باشد</span>
+                </label>
+            </div>
+
+            <div class="admin-modal-actions">
+                <button class="dashboard-action" @onclick="SaveUserAsync" disabled="@_isSavingUser">
+                    @SaveButtonTitle
+                </button>
+                <button class="dashboard-action dashboard-action-secondary"
+                        @onclick="CloseUserDialog"
+                        disabled="@_isSavingUser">
+                    انصراف
+                </button>
+            </div>
+        </div>
+    </div>
 }

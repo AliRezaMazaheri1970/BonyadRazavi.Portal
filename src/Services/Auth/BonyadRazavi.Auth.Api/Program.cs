@@ -1,4 +1,5 @@
-using System.Text;
+﻿using System.Text;
+using System.Threading.RateLimiting;
 using BonyadRazavi.Auth.Api.Audit;
 using BonyadRazavi.Auth.Api.Observability;
 using BonyadRazavi.Auth.Api.Security;
@@ -9,6 +10,7 @@ using BonyadRazavi.Auth.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +32,7 @@ builder.Services.AddOpenApi();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<LoginLockoutOptions>(builder.Configuration.GetSection(LoginLockoutOptions.SectionName));
 builder.Services.Configure<LoginFailureAlertOptions>(builder.Configuration.GetSection(LoginFailureAlertOptions.SectionName));
+builder.Services.Configure<PasswordPolicyOptions>(builder.Configuration.GetSection(PasswordPolicyOptions.SectionName));
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("JWT settings are missing.");
 var envSigningKey = Environment.GetEnvironmentVariable("JWT_SIGNING_KEY");
@@ -89,8 +92,30 @@ builder.Services
         };
     });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("change-password", context =>
+    {
+        var ip = RequestAuditMetadataFactory.ResolveClientIp(context);
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"change-password:{ip}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0
+            });
+    });
+});
+
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy(
+        AuthorizationPolicies.AuthenticatedUser,
+        policy => policy.RequireAuthenticatedUser());
+
     options.AddPolicy(
         AuthorizationPolicies.PortalAccess,
         policy => policy.RequireRole(
@@ -187,6 +212,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 app.Use(async (context, next) =>
 {

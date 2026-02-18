@@ -22,4 +22,11 @@ public interface IRefreshTokenService
         string? clientIp,
         string? userAgent,
         CancellationToken cancellationToken = default);
+
+    Task<int> RevokeAllForUserAsync(
+        Guid userId,
+        string reason,
+        string? clientIp,
+        string? userAgent,
+        CancellationToken cancellationToken = default);
 }

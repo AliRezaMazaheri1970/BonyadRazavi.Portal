@@ -30,6 +30,16 @@ builder.Services.AddHttpClient<UsersApiClient>((serviceProvider, httpClient) =>
 
     httpClient.BaseAddress = baseAddress;
 });
+builder.Services.AddHttpClient<ChangePasswordApiClient>((serviceProvider, httpClient) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<ApiGatewayOptions>>().Value;
+    if (!Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out var baseAddress))
+    {
+        throw new InvalidOperationException("ApiGateway:BaseUrl is not configured with a valid absolute URL.");
+    }
+
+    httpClient.BaseAddress = baseAddress;
+});
 
 var app = builder.Build();
 

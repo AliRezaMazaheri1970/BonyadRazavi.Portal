@@ -146,6 +146,42 @@ public sealed class InMemoryRefreshTokenService : IRefreshTokenService
         return Task.FromResult(RefreshTokenRevokeResult.Success());
     }
 
+    public Task<int> RevokeAllForUserAsync(
+        Guid userId,
+        string reason,
+        string? clientIp,
+        string? userAgent,
+        CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var revokedCount = 0;
+        var normalizedReason = string.IsNullOrWhiteSpace(reason) ? "RevokedByRequest" : reason.Trim();
+
+        lock (_sync)
+        {
+            var keys = _entries
+                .Where(pair =>
+                    pair.Value.User.Id == userId &&
+                    pair.Value.RevokedAtUtc is null &&
+                    pair.Value.ExpiresAtUtc > now)
+                .Select(pair => pair.Key)
+                .ToList();
+
+            foreach (var key in keys)
+            {
+                var entry = _entries[key];
+                _entries[key] = entry with
+                {
+                    RevokedAtUtc = now,
+                    RevocationReason = normalizedReason
+                };
+                revokedCount++;
+            }
+        }
+
+        return Task.FromResult(revokedCount);
+    }
+
     private void RevokeFamilyUnsafe(Guid familyId, DateTime now, string reason)
     {
         var keys = _entries

@@ -60,6 +60,33 @@ public sealed class UsersControllerSecurityTests
     }
 
     [Fact]
+    public async Task UpdateUser_AllowsAdminToSetEmptyCompanyCode()
+    {
+        await using var dbContext = CreateDbContext();
+        var user = CreateUser("company-a-user", "Company A User", PortalRoles.User, CompanyA);
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        var controller = CreateController(dbContext, PortalRoles.Admin, CompanyA);
+        var request = new UpdateUserRequest
+        {
+            DisplayName = "Updated User",
+            Password = null,
+            Roles = [PortalRoles.User],
+            CompanyCode = Guid.Empty,
+            CompanyName = null,
+            IsActive = true,
+            IsCompanyActive = true
+        };
+
+        var result = await controller.UpdateUser(user.Id, request, CancellationToken.None);
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var payload = Assert.IsType<UserDto>(okResult.Value);
+        Assert.Equal(Guid.Empty, payload.CompanyCode);
+    }
+
+    [Fact]
     public async Task GetUsers_ReturnsOnlyActorCompanyUsers_WhenActorIsCompanyAdmin()
     {
         await using var dbContext = CreateDbContext();
@@ -70,12 +97,14 @@ public sealed class UsersControllerSecurityTests
 
         var controller = CreateController(dbContext, PortalRoles.CompanyAdmin, CompanyA);
 
-        var result = await controller.GetUsers(CancellationToken.None);
+        var result = await controller.GetUsers(cancellationToken: CancellationToken.None);
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var users = Assert.IsAssignableFrom<IReadOnlyCollection<UserDto>>(okResult.Value);
+        var usersPage = Assert.IsType<PagedUsersResponse>(okResult.Value);
+        var users = usersPage.Items;
 
         Assert.NotEmpty(users);
         Assert.All(users, user => Assert.Equal(CompanyA, user.CompanyCode));
+        Assert.Equal(users.Count, usersPage.TotalCount);
     }
 
     [Fact]
@@ -89,11 +118,13 @@ public sealed class UsersControllerSecurityTests
 
         var controller = CreateController(dbContext, PortalRoles.Admin, CompanyA);
 
-        var result = await controller.GetUsers(CancellationToken.None);
+        var result = await controller.GetUsers(cancellationToken: CancellationToken.None);
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var users = Assert.IsAssignableFrom<IReadOnlyCollection<UserDto>>(okResult.Value);
+        var usersPage = Assert.IsType<PagedUsersResponse>(okResult.Value);
+        var users = usersPage.Items;
 
         Assert.Equal(2, users.Count);
+        Assert.Equal(2, usersPage.TotalCount);
     }
 
     [Fact]

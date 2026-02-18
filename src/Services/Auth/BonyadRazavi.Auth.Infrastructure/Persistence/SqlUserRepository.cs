@@ -21,4 +21,17 @@ public sealed class SqlUserRepository : IUserRepository
                 user => user.UserName == userName && user.IsActive,
                 cancellationToken);
     }
+
+    public Task<UserAccount?> FindByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Users
+            .FirstOrDefaultAsync(
+                user => user.Id == userId && user.IsActive,
+                cancellationToken);
+    }
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

@@ -30,4 +30,15 @@ public sealed class InMemoryUserRepository : IUserRepository
         _users.TryGetValue(userName, out var user);
         return Task.FromResult(user);
     }
+
+    public Task<UserAccount?> FindByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = _users.Values.FirstOrDefault(entry => entry.Id == userId && entry.IsActive);
+        return Task.FromResult(user);
+    }
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 }

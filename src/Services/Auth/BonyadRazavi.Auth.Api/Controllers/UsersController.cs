@@ -35,9 +35,16 @@ public sealed class UsersController : ControllerBase
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.UsersRead)]
-    [ProducesResponseType<IReadOnlyCollection<UserDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyCollection<UserDto>>> GetUsers(CancellationToken cancellationToken)
+    [ProducesResponseType<PagedUsersResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedUsersResponse>> GetUsers(
+        [FromQuery] string? search = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         IQueryable<UserAccount> query = _dbContext.Users.AsNoTracking();
 
         if (!CanBypassTenantIsolation())
@@ -56,8 +63,19 @@ public sealed class UsersController : ControllerBase
             query = query.Where(user => user.CompanyCode == actorCompanyCode);
         }
 
+        var normalizedSearch = search?.Trim();
+        if (!string.IsNullOrWhiteSpace(normalizedSearch))
+        {
+            query = query.Where(user =>
+                user.UserName.Contains(normalizedSearch) ||
+                user.DisplayName.Contains(normalizedSearch));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
         var users = await query
             .OrderBy(user => user.UserName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
         var companyNameMap = await ResolveCompanyNamesAsync(users, cancellationToken);
 
@@ -66,11 +84,21 @@ public sealed class UsersController : ControllerBase
             AuditActionTypes.ViewUsers,
             new Dictionary<string, object?>
             {
-                ["resultCount"] = users.Count
+                ["resultCount"] = users.Count,
+                ["totalCount"] = totalCount,
+                ["page"] = page,
+                ["pageSize"] = pageSize,
+                ["search"] = normalizedSearch
             },
             cancellationToken);
 
-        return Ok(users.Select(user => MapToDto(user, companyNameMap)).ToList());
+        return Ok(new PagedUsersResponse
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            Items = users.Select(user => MapToDto(user, companyNameMap)).ToList()
+        });
     }
 
     [HttpGet("{userId:guid}")]
@@ -157,12 +185,6 @@ public sealed class UsersController : ControllerBase
 
         if (!ModelState.IsValid)
         {
-            return ValidationProblem(ModelState);
-        }
-
-        if (canBypassTenantIsolation && request.CompanyCode == Guid.Empty)
-        {
-            ModelState.AddModelError(nameof(request.CompanyCode), "CompanyCode is required.");
             return ValidationProblem(ModelState);
         }
 
@@ -277,12 +299,6 @@ public sealed class UsersController : ControllerBase
 
         if (!ModelState.IsValid)
         {
-            return ValidationProblem(ModelState);
-        }
-
-        if (canBypassTenantIsolation && request.CompanyCode == Guid.Empty)
-        {
-            ModelState.AddModelError(nameof(request.CompanyCode), "CompanyCode is required.");
             return ValidationProblem(ModelState);
         }
 

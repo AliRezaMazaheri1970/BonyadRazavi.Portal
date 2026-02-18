@@ -51,6 +51,21 @@ public sealed class AuthApiAuthorizationIntegrationTests : IClassFixture<AuthApi
     }
 
     [Fact]
+    public async Task ChangePassword_WithoutJwt_ReturnsUnauthorized()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/account/change-password",
+            new
+            {
+                currentPassword = "OldPass@123",
+                newPassword = "NewPass@123",
+                confirmNewPassword = "NewPass@123"
+            });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task UpdateCompany_WithoutJwt_ReturnsUnauthorized()
     {
         var response = await _client.PutAsJsonAsync(

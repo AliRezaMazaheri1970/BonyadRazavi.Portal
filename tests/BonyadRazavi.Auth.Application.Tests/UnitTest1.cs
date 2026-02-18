@@ -74,6 +74,16 @@ public sealed class AuthenticationServiceTests
         {
             return Task.FromResult(_user);
         }
+
+        public Task<UserAccount?> FindByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(_user);
+        }
+
+        public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class StubPasswordHasher : IPasswordHasher
