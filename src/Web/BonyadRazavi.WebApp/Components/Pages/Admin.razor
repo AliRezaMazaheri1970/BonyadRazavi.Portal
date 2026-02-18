@@ -1,0 +1,106 @@
+@page "/admin"
+@page "/manage-users"
+@using BonyadRazavi.WebApp.Components.Shared
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject UserSession UserSession
+@inject NavigationManager Navigation
+@inject UsersApiClient UsersApiClient
+
+<PageTitle>مدیریت کاربران</PageTitle>
+
+@if (!UserSession.IsAuthenticated || UserSession.Current is null)
+{
+    <section class="dashboard-state">
+        <h1>جلسه کاربری فعال نیست</h1>
+        <p>برای مشاهده پنل ادمین ابتدا وارد سامانه شوید.</p>
+        <button class="dashboard-action" @onclick="GoToLogin">بازگشت به صفحه ورود</button>
+    </section>
+}
+else if (!IsAdmin)
+{
+    <section class="dashboard-state">
+        <h1>عدم دسترسی</h1>
+        <p>شما مجوز لازم برای مشاهده پنل مدیریت کاربران را ندارید.</p>
+        <button class="dashboard-action" @onclick="GoToDashboard">بازگشت به داشبورد</button>
+    </section>
+}
+else
+{
+    <section class="portal-dashboard">
+        <div class="dashboard-frame">
+            <DashboardSidebar />
+
+            <main class="dashboard-main">
+                <header class="header-dashboard">
+                    <div class="user-strip">
+                        <div title="@UserSession.Current.UserName">
+                            <img class="user-avatar" src="Images/dashboard/user.png" />
+                        </div>
+                        <p>@UserSession.Current.DisplayName</p>
+                    </div>
+
+                    <div class="today-strip">پنل مدیریت کاربران</div>
+                </header>
+
+                <h1 class="welcome-title">مدیریت کاربران</h1>
+
+                <div class="service-grid" style="grid-template-columns: 1fr;">
+                    <div class="service-card" style="padding: 1.5rem; text-align: right;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem;">
+                            <h3 style="margin:0;">لیست کاربران</h3>
+                            <button class="dashboard-action" @onclick="LoadUsersAsync" disabled="@_isLoading">
+                                @(_isLoading ? "در حال بارگذاری..." : "به‌روزرسانی")
+                            </button>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+                        {
+                            <div style="margin-bottom:1rem; padding:0.75rem 1rem; border-radius:8px; background:#ffe5e5; color:#7a1a1a;">
+                                @_errorMessage
+                            </div>
+                        }
+
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse:collapse; color:#102a5a;">
+                                <thead>
+                                    <tr style="background:#edf1ff;">
+                                        <th style="padding:0.75rem; border:1px solid #d7def6;">نام کاربری</th>
+                                        <th style="padding:0.75rem; border:1px solid #d7def6;">نام نمایشی</th>
+                                        <th style="padding:0.75rem; border:1px solid #d7def6;">نقش‌ها</th>
+                                        <th style="padding:0.75rem; border:1px solid #d7def6;">شرکت</th>
+                                        <th style="padding:0.75rem; border:1px solid #d7def6;">وضعیت</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (_users.Count == 0 && !_isLoading)
+                                    {
+                                        <tr>
+                                            <td colspan="5" style="padding:1rem; text-align:center; border:1px solid #d7def6;">
+                                                کاربری برای نمایش وجود ندارد.
+                                            </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var user in _users)
+                                        {
+                                            <tr>
+                                                <td style="padding:0.65rem; border:1px solid #d7def6;">@user.UserName</td>
+                                                <td style="padding:0.65rem; border:1px solid #d7def6;">@user.DisplayName</td>
+                                                <td style="padding:0.65rem; border:1px solid #d7def6;">@string.Join("، ", user.Roles)</td>
+                                                <td style="padding:0.65rem; border:1px solid #d7def6;">@(user.CompanyName ?? "-")</td>
+                                                <td style="padding:0.65rem; border:1px solid #d7def6;">
+                                                    @(user.IsActive ? "فعال" : "غیرفعال")
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+}

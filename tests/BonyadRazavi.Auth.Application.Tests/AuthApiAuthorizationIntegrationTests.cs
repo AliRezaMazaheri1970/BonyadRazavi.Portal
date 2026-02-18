@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using BonyadRazavi.Shared.Contracts.Auth;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -60,6 +62,29 @@ public sealed class AuthApiAuthorizationIntegrationTests : IClassFixture<AuthApi
             });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Login_WithInvalidCredentials_ReturnsCorrelationIdInHeaderAndProblemBody()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginRequest
+            {
+                UserName = "admin",
+                Password = "WrongPass123"
+            });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.True(response.Headers.TryGetValues("X-Correlation-Id", out var correlationIdHeaderValues));
+
+        var correlationId = Assert.Single(correlationIdHeaderValues);
+        Assert.False(string.IsNullOrWhiteSpace(correlationId));
+
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.NotNull(problem);
+        Assert.True(problem!.Extensions.TryGetValue("correlationId", out var correlationIdValue));
+        Assert.Equal(correlationId, correlationIdValue?.ToString());
     }
 }
 

@@ -1,16 +1,30 @@
 using System.Text;
 using BonyadRazavi.Auth.Api.Audit;
+using BonyadRazavi.Auth.Api.Observability;
 using BonyadRazavi.Auth.Api.Security;
 using BonyadRazavi.Auth.Application.Abstractions;
 using BonyadRazavi.Auth.Application.Constants;
 using BonyadRazavi.Auth.Application.Services;
 using BonyadRazavi.Auth.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ProblemDetailsCorrelationFilter>();
+});
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Extensions["correlationId"] =
+            CorrelationIdMiddleware.GetCorrelationId(context.HttpContext);
+    };
+});
 builder.Services.AddOpenApi();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
@@ -117,6 +131,36 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 await app.Services.ApplyAuthMigrationsIfEnabledAsync();
+
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseExceptionHandler(exceptionApp =>
+{
+    exceptionApp.Run(async context =>
+    {
+        var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+        var logger = context.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("GlobalExceptionHandler");
+        var correlationId = CorrelationIdMiddleware.GetCorrelationId(context);
+
+        logger.LogError(
+            exceptionFeature?.Error,
+            "Unhandled exception. CorrelationId: {CorrelationId}",
+            correlationId);
+
+        var problem = new ProblemDetails
+        {
+            Title = "خطای غیرمنتظره در سرویس",
+            Detail = "در پردازش درخواست خطایی رخ داد. کد پیگیری را برای پشتیبانی ارسال کنید.",
+            Status = StatusCodes.Status500InternalServerError
+        };
+        problem.Extensions["correlationId"] = correlationId;
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(problem);
+    });
+});
 
 if (app.Environment.IsDevelopment())
 {
