@@ -52,3 +52,56 @@ h1:focus {
 .blazor-error-boundary::after {
     content: "An error has occurred.";
 }
+
+.portal-dashboard {
+    min-height: 100vh;
+    padding: 0.22rem;
+}
+
+.dashboard-frame {
+    min-height: calc(100vh - 0.44rem);
+    display: flex;
+    gap: 4.45rem;
+    padding: 1.45rem;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+.dashboard-side {
+    width: 365px;
+    border-radius: 28px;
+    background: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);
+    border: 1px solid rgba(13, 32, 102, 0.72);
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    color: #fff;
+    padding: 1.65rem 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: inherit;
+}
+
+.side-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.side-logo {
+    width: 150px;
+    margin-bottom: 0.95rem;
+    padding: 1rem;
+    margin: 2rem 0;
+}
+
+.dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    color: #0f2f84;
+    max-width: 70%;
+}
+.header-dashboard {
+    display: flex;
+    justify-content: space-between;
+}

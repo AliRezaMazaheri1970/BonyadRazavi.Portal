@@ -1,100 +1,4 @@
-﻿.portal-dashboard {
-    min-height: 100vh;
-/*    background: #dfe2f1;*/
-    padding: 0.22rem;
-}
-
-.dashboard-frame {
-    min-height: calc(100vh - 0.44rem);
-    display: flex;
-    gap: 4.45rem;
-    padding: 1.45rem;
-    box-sizing: border-box;
-/*    align-items: center;*/
-    justify-content: center;
-}
-
-.dashboard-side {
-    width: 365px;
-    border-radius: 28px;
-    background: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);
-    border: 1px solid rgba(13, 32, 102, 0.72);
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
-    color: #fff;
-    padding: 1.65rem 1.75rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: inherit;
-}
-
-.side-top {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.side-logo {
-    width: 150px;
-    margin-bottom: 0.95rem;
-    padding: 1rem;
-    margin: 2rem 0;
-}
-
-.side-menu {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    text-align: right;
-    font-size: 1.05rem;
-    line-height: 1.85;
-}
-
-.side-link {
-    text-decoration: none;
-    color: #fff;
-    display: block;
-    padding: 8px 0;
-    text-align: right;
-    text-decoration: none;
-
-}
-
-.active-link {
-    font-weight: bold;
-    color: #132f7d;
-}
-
-.side-exit {
-    border: 0;
-    background: transparent;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    font-size: 1.05rem;
-    cursor: pointer;
-    text-align: right;
-    margin-top: 60px;
-    text-shadow: 0px 0px 3px rgba(50, 60, 196, 1);
-}
-
-.icon-logout {
-    width: 1.7rem;
-    filter: brightness(0) invert(1);
-}
-.dashboard-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    /*    align-items: center;*/
-    color: #0f2f84;
-    max-width: 70%;
-}
-.header-dashboard {
-    display: flex;
-    justify-content: space-between;
-}
+﻿
 .user-strip {
     display: flex;
     justify-content: center;
@@ -105,7 +9,7 @@
     .user-strip p {
         margin: 0;
         font-size: 1.5rem;
-        color:white;
+        color: white;
     }
 
 .user-avatar {
@@ -113,7 +17,7 @@
     height: 64px;
     border-radius: 50%;
     border: 5px solid rgb(255, 255, 255);
-/*    background: radial-gradient(circle at 34% 22%, #8aa0f4, #1d38a3 78%);*/
+    /*    background: radial-gradient(circle at 34% 22%, #8aa0f4, #1d38a3 78%);*/
     background: #FFF;
     color: #fff;
     display: grid;
@@ -123,59 +27,27 @@
 }
 
 .welcome-title {
-    margin:2rem 0 3rem 0;
-/*    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);*/
+    margin: 2rem 0 3rem 0;
+    /*    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);*/
     font-size: 2rem;
     font-weight: 500;
     color: white;
 }
 
-.chat-entry {
-/*    width: min(840px, 100%);*/
-    min-height: 200px;
-    border: 0;
-    border-radius: 28px;
-    color: #fff;
-    font-size: clamp(2rem, 1.35rem + 1.7vw, 4.3rem);
-    background: linear-gradient(90deg, #123790 0%, #6a75d6 100%);
-    box-shadow: 0 12px 26px rgba(18, 49, 136, 0.2);
-    margin-bottom: 1.5rem;
-}
 
 .service-grid {
     /*    width: min(840px, 100%);*/
-    display: grid;
+    /*    display: grid;
     grid-template-columns: repeat(4, minmax(170px, 1fr));
     gap: 3rem;
-    background: white;
+    background: white;*/
     /*    justify-items: center;*/
     padding: 40px;
     border-radius: 25px;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
-    background: #F9F9FD;
-    background-image: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);
+    background: #ababf2;
+    /*    background-image: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);*/
 }
-
-/*    .service-grid ::deep a.service-card {
-        min-height: 220px;
-        background: #F9F9FD;
-        background: linear-gradient(145deg, #fafafe, #f0effc);
-        box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
-        border-radius: 25px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.7rem;
-        text-decoration: none;
-        transition: all 750ms ease-in-out 0s;
-    }
-
-
-    .service-grid ::deep a.service-card:hover {
-        background: linear-gradient(90deg, #ededff, #e4e4fc);
-
-    }*/
 
     .service-grid ::deep a.service-card {
         position: relative;
@@ -290,6 +162,180 @@
     padding: 0 1rem;
 }
 
+
+.receive-reports-page {
+    display: flex;
+    padding: 2rem;
+    gap: 3rem;
+}
+
+.receive-reports {
+    background: #ababf2;
+    padding: 2rem;
+    border-radius: 25px;
+    box-shadow: 0 0 7px 1px #6855ee;
+    width: 100%;
+}
+
+.title-page {
+    color: #132f7d;
+}
+
+.table-scroll-container {
+    max-height: 850px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    direction: rtl;
+    text-align: center;
+    font-family: Tahoma, sans-serif;
+    color: #132f7d;
+}
+
+    .invoice-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .invoice-table th {
+        background-color: #fff;
+        position: sticky;
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    .invoice-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    .invoice-table thead tr:nth-child(1) th {
+        top: 0;
+        z-index: 11;
+    }
+
+    .invoice-table thead tr:nth-child(2) th {
+        top: 46px;
+        z-index: 10;
+        border-top: none;
+    }
+
+    .invoice-table tbody tr:nth-child(even) {
+        background-color: #fff;
+    }
+
+    .invoice-table tbody tr:nth-child(odd) {
+        background-color: #f0f2fb;
+    }
+
+    .invoice-table tbody tr:hover {
+        background-color: #e2e6f9;
+    }
+
+.filter-input {
+    width: 90%;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.date-range-filter {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.sort-btn {
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    float: left;
+    font-weight: bold;
+}
+
+.btn-dashboard {
+    background-color: #2b24ba;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+    .btn-dashboard:hover {
+        background-color: #2242a3;
+    }
+
+.btn-download {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.3s;
+}
+
+    .btn-download:hover {
+        background-color: #218838;
+    }
+
+/* استایل‌های مربوط به دکمه حذف و باکس تاریخ */
+.date-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.btn-clear-date {
+    position: absolute;
+    top: 50%;
+    right: 5px; /* دکمه ضربدر در سمت راست قرار می‌گیرد */
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #ff4d4f;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+    z-index: 2;
+    transition: color 0.3s;
+}
+
+    .btn-clear-date:hover {
+        color: #cf1322;
+    }
+
+/* آپدیت ظاهر اینپوت برای جا دادن آیکون و دکمه ضربدر */
+.filter-input-date {
+    width: 100%;
+    padding: 4px 8px;
+    padding-right: 25px; /* ایجاد فضا در سمت راست برای دکمه ضربدر */
+    padding-left: 30px; /* ایجاد فضا در سمت چپ برای آیکون تقویم */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 8px center; /* آیکون تقویم در سمت چپ */
+    cursor: pointer;
+    text-align: right;
+    color: #333;
+}
+
+
 @media (max-width: 1400px) {
     .dashboard-frame {
         padding: 1rem;
@@ -324,22 +370,22 @@
 
 @media (max-width: 1120px) {
     .dashboard-frame {
-        flex-direction: column-reverse;
+        flex-direction: column;
     }
 
     .dashboard-side {
         width: 100%;
     }
 
-    .service-grid {
+    /*    .service-grid {
         grid-template-columns: repeat(2, minmax(150px, 1fr));
-    }
+    }*/
 }
 
 @media (max-width: 760px) {
-    .service-grid {
+    /*    .service-grid {
         grid-template-columns: 1fr;
-    }
+    }*/
 
     .user-strip p {
         font-size: 1.45rem;
