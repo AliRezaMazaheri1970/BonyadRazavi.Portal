@@ -59,26 +59,6 @@
     background-image: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);
 }
 
-/*    .service-grid ::deep a.service-card {
-        min-height: 220px;
-        background: #F9F9FD;
-        background: linear-gradient(145deg, #fafafe, #f0effc);
-        box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
-        border-radius: 25px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.7rem;
-        text-decoration: none;
-        transition: all 750ms ease-in-out 0s;
-    }
-
-
-    .service-grid ::deep a.service-card:hover {
-        background: linear-gradient(90deg, #ededff, #e4e4fc);
-
-    }*/
 
     .service-grid ::deep a.service-card {
         position: relative;

@@ -1,4 +1,4 @@
-using BonyadRazavi.Shared.Contracts.Account;
+﻿using BonyadRazavi.Shared.Contracts.Account;
 
 namespace BonyadRazavi.WebApp.Components.Pages;
 
@@ -73,5 +73,10 @@ public partial class ChangePassword
     private void GoToLogin()
     {
         Navigation.NavigateTo("/login");
+    }
+
+    private void GoToDashboard()
+    {
+        Navigation.NavigateTo("/dashboard");
     }
 }

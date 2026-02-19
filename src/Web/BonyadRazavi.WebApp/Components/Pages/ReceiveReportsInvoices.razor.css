@@ -118,7 +118,7 @@
 
 .today-strip {
     width: min(17vw, 100%);
-    border-radius: 25px;
+    border-radius: 15px;
     background: #d4deff;
     color: #132f7d;
     min-height: 50px;
@@ -160,6 +160,7 @@
     min-height: 44px;
     min-width: 170px;
     padding: 0 1rem;
+    margin: 5px 0;
 }
 
 
@@ -265,7 +266,7 @@
     background-color: #2b24ba;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 15px 30px;
     border-radius: 15px;
     cursor: pointer;
     font-family: inherit;

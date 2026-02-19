@@ -1,32 +1,4 @@
-﻿
-.user-strip {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-}
-
-    .user-strip p {
-        margin: 0;
-        font-size: 1.5rem;
-        color:white;
-    }
-
-.user-avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: 5px solid rgb(255, 255, 255);
-/*    background: radial-gradient(circle at 34% 22%, #8aa0f4, #1d38a3 78%);*/
-    background: #FFF;
-    color: #fff;
-    display: grid;
-    place-items: center;
-    font-weight: 700;
-    font-size: 1.65rem;
-}
-
-.welcome-title {
+﻿.welcome-title {
     margin:2rem 0 3rem 0;
 /*    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);*/
     font-size: 2rem;
@@ -126,10 +98,15 @@
     color: #132f7d;
     font-weight: 500;
 }
+.btns-header {
+    display: flex;
+    gap: 2rem;
+    width: min(21vw, 100%);
+}
 
 .today-strip {
     width: min(17vw, 100%);
-    border-radius: 25px;
+    border-radius: 15px;
     background: #d4deff;
     color: #132f7d;
     min-height: 50px;
@@ -139,6 +116,7 @@
     font-size: 1rem;
     text-align: center;
     padding: 0 20px;
+    margin: 5px 0;
 }
 
 .dashboard-state {
@@ -161,9 +139,10 @@
     }
 
 .dashboard-action {
-    background: linear-gradient(90deg, #13378f 0%, #5f73d8 100%);
+    /*    background: linear-gradient(90deg, #13378f 0%, #5f73d8 100%);*/
+    background: #2141a2;
     border: 0;
-    border-radius: 999px;
+    border-radius: 15px;
     color: #fff;
     cursor: pointer;
     font-size: 1rem;
@@ -171,13 +150,31 @@
     min-height: 44px;
     min-width: 170px;
     padding: 0 1rem;
+    margin: 5px 0;
 }
 
     .dashboard-action:disabled {
         opacity: 0.55;
         cursor: not-allowed;
     }
+    .dashboard-action:hover {
+        background: #5663d9;
+    }
+.btn-dashboard {
+    background-color: #ababf2;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-family: inherit;
+    width: 80%;
+    margin: 5px 0;
+}
 
+    .btn-dashboard:hover {
+        background-color: #5f73d8;
+    }
 .dashboard-action-secondary {
     background: linear-gradient(90deg, #4a5f9b 0%, #7080c5 100%);
 }

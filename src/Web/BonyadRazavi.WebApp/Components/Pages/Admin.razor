@@ -1,4 +1,4 @@
-@page "/admin"
+﻿@page "/admin"
 @page "/manage-users"
 @using BonyadRazavi.WebApp.Components.Shared
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
@@ -22,7 +22,10 @@ else if (!IsAdmin)
     <section class="dashboard-state">
         <h1>عدم دسترسی</h1>
         <p>شما مجوز لازم برای مشاهده پنل مدیریت کاربران را ندارید.</p>
-        <button class="dashboard-action" @onclick="GoToDashboard">بازگشت به داشبورد</button>
+        <button class="dashboard-action" @onclick="GoToDashboard">
+            <img class="icon-dashboard" src="Images/dashboard/dashboard.png" />
+            <span>داشبورد</span>
+        </button>
     </section>
 }
 else
@@ -40,7 +43,13 @@ else
                         <p>@UserSession.Current.DisplayName</p>
                     </div>
 
-                    <div class="today-strip">پنل مدیریت کاربران</div>
+                    <div class="btns-header">
+                        <button class="btn-dashboard" @onclick="GoToDashboard">
+                            <img class="icon-dashboard" src="Images/dashboard/dashboard.png" />
+                            <span>داشبورد</span>
+                        </button>
+                        <div class="today-strip">پنل مدیریت کاربران</div>
+                    </div>
                 </header>
 
                 <h1 class="welcome-title">مدیریت کاربران</h1>
