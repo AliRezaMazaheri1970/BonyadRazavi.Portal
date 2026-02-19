@@ -35,6 +35,17 @@ namespace BonyadRazavi.WebApp.Components.Shared
                 return items;
             }
         }
+        private bool isNavMenuOpen = false;
+
+        private void ToggleNavMenu()
+        {
+            isNavMenuOpen = !isNavMenuOpen;
+        }
+
+        private void CloseMenu()
+        {
+            isNavMenuOpen = false;
+        }
 
         private bool IsAdmin()
         {

@@ -2,7 +2,11 @@
 @inject UserSession UserSession
 @inject NavigationManager Navigation
 
-<aside class="dashboard-side">
+<button class="hamburger-btn" @onclick="ToggleNavMenu">
+    <span class="hamburger-icon"></span>
+</button>
+
+<aside class="dashboard-side @(isNavMenuOpen ? "show-menu" : "")">
     <div class="side-top">
         <img src="Images/logo1.png" class="side-logo" alt="لوگوی بنیاد" />
 
@@ -13,6 +17,7 @@
                     <NavLink href="@item.Route"
                              class="side-link"
                              ActiveClass="active-link"
+                             @onclick="CloseMenu"
                              style="color: #fff; text-decoration: none; text-shadow: 0px 0px 3px rgba(50, 60, 196, 1); font-size:1rem;">
                         @item.Title
                     </NavLink>
@@ -27,4 +32,7 @@
     </button>
 </aside>
 
-
+@if (isNavMenuOpen)
+{
+    <div class="menu-backdrop" @onclick="ToggleNavMenu"></div>
+}
