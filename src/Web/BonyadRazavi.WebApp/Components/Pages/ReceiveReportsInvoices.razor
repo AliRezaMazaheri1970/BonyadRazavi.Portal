@@ -27,6 +27,7 @@
                                 <th>شماره صورتحساب <button class="sort-btn" @onclick='() => Sort("Name")'>@GetSortIcon("Name")</button></th>
                                 <th>شماره قرارداد <button class="sort-btn" @onclick='() => Sort("Contract")'>@GetSortIcon("Contract")</button></th>
                                 <th>تاریخ صورتحساب <button class="sort-btn" @onclick='() => Sort("Date")'>@GetSortIcon("Date")</button></th>
+                                <th>قیمت کل <button class="sort-btn" @onclick='() => Sort("Price")'>@GetSortIcon("Price")</button></th>
                                 <th>عملیات</th>
                             </tr>
                             <tr>
@@ -53,6 +54,14 @@
 
                                     </div>
                                 </th>
+                                <th>
+                                    <input type="number"
+                                           class="filter-input"
+                                           @bind="searchTotalPrice"
+                                           @bind:event="OnPriceChanged"
+                                           @oninput="OnPriceChanged"
+                                           placeholder="حداقل قیمت..." />
+                                </th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -65,6 +74,7 @@
                                         <td>@item.InvoiceName</td>
                                         <td>@item.ContractNumber</td>
                                         <td>@item.InvoiceDate.ToString("yyyy/MM/dd")</td>
+                                        <td>@item.TotalPrice.ToString("N0") ریال</td>
                                         <td><button class="btn-download" @onclick="() => DownloadInvoice(item)">دانلود ↓</button></td>
                                     </tr>
                                 }

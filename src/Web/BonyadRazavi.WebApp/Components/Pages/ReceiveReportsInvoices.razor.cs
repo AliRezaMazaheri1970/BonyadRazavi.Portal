@@ -17,11 +17,14 @@ namespace BonyadRazavi.WebApp.Components.Pages
             public string InvoiceName { get; set; } = string.Empty;
             public DateTime InvoiceDate { get; set; }
             public string ContractNumber { get; set; } = string.Empty;
+
+            public int TotalPrice { get; set; }
         }
 
         private List<Invoice> invoices = new();
         private string searchName = "";
         private string searchContract = "";
+        private int? searchTotalPrice;
 
         // برگرداندن به استرینگ برای جلوگیری از خطای سال ۱۴۰۴ در دات‌نت
         private string searchFromDate = "";
@@ -36,40 +39,11 @@ namespace BonyadRazavi.WebApp.Components.Pages
         {
             invoices = new List<Invoice>
             {
-                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
-                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
-                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
-                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
+                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" , TotalPrice = 178000000 },
+                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" , TotalPrice = 245000000 },
+                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" , TotalPrice = 79000000 },
+                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" , TotalPrice = 119000000},
               
-                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
-                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
-                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
-                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
-              
-                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
-                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
-                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
-                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
-              
-                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
-                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
-                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
-                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
-              
-                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
-                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
-                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
-                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
-              
-                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
-                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
-                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
-                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
-              
-                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" },
-                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" },
-                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" },
-                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" },
               
 
             };
@@ -120,11 +94,18 @@ namespace BonyadRazavi.WebApp.Components.Pages
                 if (!string.IsNullOrWhiteSpace(searchToDate))
                     query = query.Where(i => string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchToDate) <= 0);
 
+                if (searchTotalPrice.HasValue && searchTotalPrice.Value > 0)
+                {
+                    // تبدیل عدد به متن برای جستجوی "شامل بودن"
+                    query = query.Where(i => i.TotalPrice.ToString().Contains(searchTotalPrice.Value.ToString()));
+                }
+
                 if (!string.IsNullOrEmpty(sortColumn))
                 {
                     if (sortColumn == "Name") query = isAscending ? query.OrderBy(i => i.InvoiceName) : query.OrderByDescending(i => i.InvoiceName);
                     else if (sortColumn == "Date") query = isAscending ? query.OrderBy(i => i.InvoiceDate) : query.OrderByDescending(i => i.InvoiceDate);
                     else if (sortColumn == "Contract") query = isAscending ? query.OrderBy(i => i.ContractNumber) : query.OrderByDescending(i => i.ContractNumber);
+                    else if (sortColumn == "Price") query = isAscending ? query.OrderBy(i => i.TotalPrice) : query.OrderByDescending(i => i.TotalPrice);
                 }
 
                 return query.ToList();
@@ -181,6 +162,16 @@ namespace BonyadRazavi.WebApp.Components.Pages
 
             // فراخوانی تابع جاوااسکریپتی که در فایل App.razor نوشتیم
             await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+        }
+
+        private void OnPriceChanged(ChangeEventArgs e)
+        {
+            if (int.TryParse(e.Value?.ToString(), out var result))
+                searchTotalPrice = result;
+            else
+                searchTotalPrice = null;
+
+            StateHasChanged(); // اجبار به بازخوانی FilteredAndSortedInvoices
         }
     }
 }
