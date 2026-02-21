@@ -218,6 +218,17 @@ public sealed class UsersControllerSecurityTests
                 new CompanyDirectoryEntry(companyCode, $"Company-{companyCode}"));
         }
 
+        public Task<IReadOnlyCollection<CompanyDirectoryEntry>> GetAllAsync(
+            CancellationToken cancellationToken = default)
+        {
+            IReadOnlyCollection<CompanyDirectoryEntry> entries =
+            [
+                new CompanyDirectoryEntry(CompanyA, $"Company-{CompanyA}"),
+                new CompanyDirectoryEntry(CompanyB, $"Company-{CompanyB}")
+            ];
+            return Task.FromResult(entries);
+        }
+
         public Task<IReadOnlyDictionary<Guid, string?>> GetNamesByCodesAsync(
             IReadOnlyCollection<Guid> companyCodes,
             CancellationToken cancellationToken = default)

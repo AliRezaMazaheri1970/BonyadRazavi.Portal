@@ -74,6 +74,26 @@ public sealed class CompaniesControllerSecurityTests
     }
 
     [Fact]
+    public async Task GetCompanyDirectory_ReturnsOnlyActorCompany_WhenActorIsCompanyAdmin()
+    {
+        await using var dbContext = CreateDbContext();
+        dbContext.Users.AddRange(
+            CreateUser("company-a-user", "Company A User", PortalRoles.User, CompanyA),
+            CreateUser("company-b-user", "Company B User", PortalRoles.User, CompanyB));
+        await dbContext.SaveChangesAsync();
+
+        var controller = CreateController(dbContext, PortalRoles.CompanyAdmin, CompanyA);
+
+        var result = await controller.GetCompanyDirectory(CancellationToken.None);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var companies = Assert.IsAssignableFrom<IReadOnlyCollection<CompanyDto>>(okResult.Value);
+
+        var only = Assert.Single(companies);
+        Assert.Equal(CompanyA, only.CompanyCode);
+        Assert.Equal($"Company-{CompanyA}", only.CompanyName);
+    }
+
+    [Fact]
     public async Task UpdateCompany_ReturnsForbid_WhenActorUpdatesOtherCompany()
     {
         await using var dbContext = CreateDbContext();
@@ -196,6 +216,17 @@ public sealed class CompaniesControllerSecurityTests
 
             return Task.FromResult<CompanyDirectoryEntry?>(
                 new CompanyDirectoryEntry(companyCode, $"Company-{companyCode}"));
+        }
+
+        public Task<IReadOnlyCollection<CompanyDirectoryEntry>> GetAllAsync(
+            CancellationToken cancellationToken = default)
+        {
+            IReadOnlyCollection<CompanyDirectoryEntry> entries =
+            [
+                new CompanyDirectoryEntry(CompanyA, $"Company-{CompanyA}"),
+                new CompanyDirectoryEntry(CompanyB, $"Company-{CompanyB}")
+            ];
+            return Task.FromResult(entries);
         }
 
         public Task<IReadOnlyDictionary<Guid, string?>> GetNamesByCodesAsync(

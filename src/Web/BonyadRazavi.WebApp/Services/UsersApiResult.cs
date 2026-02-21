@@ -1,4 +1,5 @@
 using BonyadRazavi.Shared.Contracts.Users;
+using BonyadRazavi.Shared.Contracts.Companies;
 
 namespace BonyadRazavi.WebApp.Services;
 
@@ -33,4 +34,17 @@ public sealed record UserMutationApiResult(
 
     public static UserMutationApiResult Failed(string errorMessage, int? statusCode = null) =>
         new(false, null, errorMessage, statusCode);
+}
+
+public sealed record CompanyDirectoryApiResult(
+    bool IsSuccess,
+    IReadOnlyList<CompanyDto> Companies,
+    string? ErrorMessage,
+    int? StatusCode)
+{
+    public static CompanyDirectoryApiResult Succeeded(IReadOnlyList<CompanyDto> companies) =>
+        new(true, companies, null, null);
+
+    public static CompanyDirectoryApiResult Failed(string errorMessage, int? statusCode = null) =>
+        new(false, [], errorMessage, statusCode);
 }

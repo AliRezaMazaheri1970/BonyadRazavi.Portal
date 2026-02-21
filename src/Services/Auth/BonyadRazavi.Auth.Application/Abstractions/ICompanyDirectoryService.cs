@@ -8,6 +8,9 @@ public interface ICompanyDirectoryService
         Guid companyCode,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyCollection<CompanyDirectoryEntry>> GetAllAsync(
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyDictionary<Guid, string?>> GetNamesByCodesAsync(
         IReadOnlyCollection<Guid> companyCodes,
         CancellationToken cancellationToken = default);

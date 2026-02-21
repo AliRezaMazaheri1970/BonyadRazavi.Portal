@@ -108,12 +108,10 @@ else
                                                 <td style="padding:0.65rem; border:1px solid #d7def6;">@user.DisplayName</td>
                                                 <td style="padding:0.65rem; border:1px solid #d7def6;">@(user.Roles.Count > 0 ? string.Join("، ", user.Roles) : "-")</td>
                                                 <td style="padding:0.65rem; border:1px solid #d7def6;">@(user.CompanyName ?? "-")</td>
-                                                <td style="padding:0.65rem; border:1px solid #d7def6;">
-                                                    @(user.IsActive ? "فعال" : "غیرفعال")
-                                                </td>
+                                                <td style="padding:0.65rem; border:1px solid #d7def6;">@(user.IsActive ? "فعال" : "غیرفعال")</td>
                                                 <td style="padding:0.65rem; border:1px solid #d7def6;">
                                                     <button class="dashboard-action admin-row-action"
-                                                            @onclick="@(() => OpenEditUserDialog(user))"
+                                                            @onclick="() => OpenEditUserDialog(user)"
                                                             disabled="@_isLoading">
                                                         اصلاح
                                                     </button>
@@ -183,14 +181,42 @@ else
                            placeholder="نام کامل کاربر" />
                 </div>
                 <div>
-                    <label>کد شرکت (GUID)</label>
-                    <input @bind="_editorCompanyCode"
-                           placeholder="در صورت نداشتن، خالی بگذارید" />
-                </div>
-                <div>
                     <label>نام شرکت</label>
-                    <input @bind="_editorCompanyName"
-                           placeholder="اختیاری" />
+                    <div class="admin-company-picker">
+                        <input value="@SelectedCompanyName" readonly />
+                        <button type="button"
+                                class="dashboard-action admin-picker-toggle"
+                                @onclick="ToggleCompanyPickerAsync"
+                                disabled="@(_isSavingUser || _isLoadingCompanyDirectory)">
+                            @(_isCompanyPickerOpen ? "بستن لیست" : "انتخاب شرکت")
+                        </button>
+                    </div>
+                    @if (_isCompanyPickerOpen)
+                    {
+                        <div class="admin-company-list-panel">
+                            <input @bind="_companySearchTerm"
+                                   @bind:event="oninput"
+                                   class="admin-company-search"
+                                   placeholder="جستجو نام شرکت یا کد شرکت" />
+                            <div class="admin-company-list">
+                                @if (FilteredCompanies.Count == 0)
+                                {
+                                    <div class="admin-company-empty">شرکتی برای نمایش یافت نشد.</div>
+                                }
+                                else
+                                {
+                                    @foreach (var company in FilteredCompanies)
+                                    {
+                                        <button type="button"
+                                                class="admin-company-item @(IsSelectedCompany(company) ? "is-selected" : string.Empty)"
+                                                @onclick="@(() => SelectCompany(company))">
+                                            @GetCompanyLabel(company)
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
                 <div class="admin-form-span-2">
                     <label>

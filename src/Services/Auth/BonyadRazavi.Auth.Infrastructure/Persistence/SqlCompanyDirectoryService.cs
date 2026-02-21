@@ -60,6 +60,41 @@ public sealed class SqlCompanyDirectoryService : ICompanyDirectoryService
         }
     }
 
+    public async Task<IReadOnlyCollection<CompanyDirectoryEntry>> GetAllAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT CompaniesCode, CompanyName
+                FROM dbo.Companies_Base
+                ORDER BY CompanyName, CompaniesCode
+                """;
+
+            var result = new List<CompanyDirectoryEntry>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var code = reader.GetGuid(0);
+                var name = reader.IsDBNull(1) ? null : reader.GetString(1);
+                result.Add(new CompanyDirectoryEntry(code, name));
+            }
+
+            return result;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Failed to load full company directory from LaboratoryRASF.");
+            return Array.Empty<CompanyDirectoryEntry>();
+        }
+    }
+
     public async Task<IReadOnlyDictionary<Guid, string?>> GetNamesByCodesAsync(
         IReadOnlyCollection<Guid> companyCodes,
         CancellationToken cancellationToken = default)
