@@ -422,6 +422,7 @@
 @media (max-width: 760px) {
     .service-grid {
         grid-template-columns: repeat(2, minmax(70px, 1fr));
+        padding: 70px 10px 10px 10px;
     }
 
     .user-strip p {
@@ -458,6 +459,14 @@
     .today-strip {
         width: 50%;
     }
+    .title-page {
+        font-size: 1.1rem;
+    }
+
+    .btn-dashboard {
+        
+        padding: 8px 16px;
+    }
 }
 
 @media (max-width: 484px) {
@@ -473,5 +482,13 @@
 
     .today-strip {
         width: 100%;
+    }
+    .title-page {
+        font-size: 1rem;
+    }
+
+    .btn-dashboard {
+        padding: 8px 12px;
+        font-size:.7rem;
     }
 }
