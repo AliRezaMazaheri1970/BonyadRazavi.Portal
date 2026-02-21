@@ -1,13 +1,13 @@
 ﻿.welcome-title {
-    margin:2rem 0 3rem 0;
-/*    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);*/
+    margin: 2rem 0 3rem 0;
+    /*    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);*/
     font-size: 2rem;
     font-weight: 500;
     color: white;
 }
 
 .chat-entry {
-/*    width: min(840px, 100%);*/
+    /*    width: min(840px, 100%);*/
     min-height: 200px;
     border: 0;
     border-radius: 28px;
@@ -19,17 +19,17 @@
 }
 
 .service-grid {
-    /*    width: min(840px, 100%);*/
+    /*    width: min(840px, 100%);*/
     display: grid;
     grid-template-columns: repeat(4, minmax(170px, 1fr));
     gap: 3rem;
     background: white;
-    /*    justify-items: center;*/
+    /*    justify-items: center;*/
     padding: 40px;
     border-radius: 25px;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
     background: #ababf2;
-    /*    background-image: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);*/
+    /*    background-image: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);*/
 }
 
     .service-grid ::deep a.service-card {
@@ -59,9 +59,9 @@
         /* گرادیان اولیه */
         .service-grid ::deep a.service-card::before {
             background: #fffcfc;
-            /*            background: linear-gradient(120deg, #fffcfc 0%, #ced2f7 50%, #979eeb 100%);*/
+            /*            background: linear-gradient(120deg, #fffcfc 0%, #ced2f7 50%, #979eeb 100%);*/
             opacity: 1;
-            /*            box-shadow: rgba(227, 225, 255, 0.76) 0px -23px 25px 0px inset, rgba(199, 214, 255, 0.78) 0px -36px 30px 0px inset, rgba(229, 235, 255, 0.85) 0px -79px 40px 0px inset;*/
+            /*            box-shadow: rgba(227, 225, 255, 0.76) 0px -23px 25px 0px inset, rgba(199, 214, 255, 0.78) 0px -36px 30px 0px inset, rgba(229, 235, 255, 0.85) 0px -79px 40px 0px inset;*/
             box-shadow: rgba(231, 230, 251, 0.58) 0px -23px 25px 0px inset, rgba(209, 221, 251, 0.46) 0px -36px 30px 0px inset, rgba(229, 235, 255, 0.72) 0px -79px 40px 0px inset;
         }
 
@@ -98,6 +98,7 @@
     color: #132f7d;
     font-weight: 500;
 }
+
 .btns-header {
     display: flex;
     gap: 2rem;
@@ -139,7 +140,7 @@
     }
 
 .dashboard-action {
-    /*    background: linear-gradient(90deg, #13378f 0%, #5f73d8 100%);*/
+    /*    background: linear-gradient(90deg, #13378f 0%, #5f73d8 100%);*/
     background: #2141a2;
     border: 0;
     border-radius: 15px;
@@ -157,9 +158,11 @@
         opacity: 0.55;
         cursor: not-allowed;
     }
+
     .dashboard-action:hover {
         background: #5663d9;
     }
+
 .btn-dashboard {
     background-color: #ababf2;
     color: white;
@@ -175,6 +178,7 @@
     .btn-dashboard:hover {
         background-color: #5f73d8;
     }
+
 .dashboard-action-secondary {
     background: linear-gradient(90deg, #4a5f9b 0%, #7080c5 100%);
 }
@@ -351,6 +355,26 @@
     justify-content: flex-end;
     margin-top: 1.2rem;
 }
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #102a5a;
+}
+
+    .users-table thead tr th {
+        padding: 0.75rem;
+        border: 1px solid #d7def6;
+        min-width: 100px;
+    }
+
+.content-user-table {
+    padding: 0.65rem;
+    border: 1px solid #d7def6;
+    min-width: 100px;
+    max-width: 130px
+}
+
 @media (max-width: 1701px) {
 
     .today-strip {
@@ -371,22 +395,18 @@
 }
 
 @media (max-width: 1340px) {
+    .dashboard-frame {
+        gap: 2rem;
+    }
+
     .service-grid {
         grid-template-columns: repeat(3, minmax(150px, 1fr));
     }
 
-    .service-card h3 {
-        margin: 0;
-        text-align: center;
-        font-size: .8rem;
-        color: #132f7d;
-        font-weight: 500;
-    }
     .btn-dashboard {
         width: inherit;
         padding: 0 5px;
     }
-
 }
 
 @media (max-width: 1266px) {
@@ -394,6 +414,7 @@
         width: inherit;
         padding: 0 10px;
     }
+
     .today-strip {
         width: inherit;
     }
@@ -422,17 +443,29 @@
         width: min(40vw, 100%);
         margin-left: 80px;
     }
+
     .btn-dashboard {
         width: inherit;
         padding: 0 20px;
     }
 
-    
+     
+      
 }
 
 @media (max-width: 914px) {
     .today-strip {
         width: inherit;
+    }
+
+    .admin-card {
+        overflow:auto;
+    }
+    .dashboard-action {
+        
+        min-width: 100px;
+        padding: 0 .5rem;
+        margin: 5px 0;
     }
 }
 
@@ -468,6 +501,13 @@
     .today-strip {
         width: 50%;
     }
+    .user-strip {
+        justify-content: right;
+    }
+        .user-strip p {
+            font-size: .95rem;
+        }
+
 }
 
 @media (max-width: 484px) {

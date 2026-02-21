@@ -280,11 +280,12 @@
     background-color: #28a745;
     color: white;
     border: none;
-    padding: 6px 12px;
+    padding: 6px 0;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.85rem;
     transition: background 0.3s;
+    min-width: 66px;
 }
 
     .btn-download:hover {
@@ -354,6 +355,9 @@
 }
 
 @media (max-width: 1340px) {
+    .dashboard-frame {
+        gap: 2rem;
+    }
     .service-grid {
         grid-template-columns: repeat(3, minmax(150px, 1fr));
     }
@@ -364,6 +368,10 @@
         font-size: .8rem;
         color: #132f7d;
         font-weight: 500;
+    }
+    .invoice-table th {
+        min-width: 175px;
+        font-size:.9rem
     }
 }
 
@@ -399,6 +407,15 @@
     .today-strip {
         width: 40%;
     }
+    .invoice-table th {
+        font-size: .8rem;
+    }
+    
+}
+@media (max-width: 849px) {
+   .invoice-table th {
+        min-width: 140px;
+    }
 }
 
 
@@ -422,6 +439,14 @@
 
     .chat-entry {
         font-size: 1.55rem;
+    }
+    .table-scroll-container {
+        overflow-y: auto;
+        overflow-x: auto;
+       
+    }
+    .invoice-table th {
+        font-size: .7rem;
     }
 }
 
