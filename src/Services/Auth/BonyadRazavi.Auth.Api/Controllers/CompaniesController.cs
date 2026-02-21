@@ -98,6 +98,63 @@ public sealed class CompaniesController : ControllerBase
         return Ok(companies);
     }
 
+    [HttpGet("directory")]
+    [ProducesResponseType<IReadOnlyCollection<CompanyDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyCollection<CompanyDto>>> GetCompanyDirectory(
+        CancellationToken cancellationToken = default)
+    {
+        var directoryEntries = await _companyDirectoryService.GetAllAsync(cancellationToken);
+
+        if (!TenantContextResolver.CanBypassTenantIsolation(User))
+        {
+            if (!TenantContextResolver.TryGetCompanyCode(User, out var actorCompanyCode))
+            {
+                return await ForbidWithSecurityLogAsync(
+                    "MissingCompanyClaim",
+                    new Dictionary<string, object?>
+                    {
+                        ["attemptedAction"] = "Companies.ReadDirectory"
+                    },
+                    cancellationToken);
+            }
+
+            directoryEntries = directoryEntries
+                .Where(entry => entry.CompanyCode == actorCompanyCode)
+                .ToArray();
+        }
+
+        var usageStats = await GetCompanyUsageStatsAsync(cancellationToken);
+        var companies = directoryEntries
+            .Select(entry =>
+            {
+                usageStats.TryGetValue(entry.CompanyCode, out var usage);
+                return new CompanyDto
+                {
+                    CompanyCode = entry.CompanyCode,
+                    CompanyName = entry.CompanyName,
+                    IsActive = usage?.IsActive ?? true,
+                    UsersCount = usage?.UsersCount ?? 0,
+                    CreatedAtUtc = usage?.CreatedAtUtc ?? DateTime.MinValue
+                };
+            })
+            .OrderBy(company => company.CompanyName ?? string.Empty)
+            .ThenBy(company => company.CompanyCode)
+            .ToList();
+
+        await _userActionLogService.LogAsync(
+            RequestAuditMetadataFactory.ResolveAuthenticatedUserId(User),
+            AuditActionTypes.ViewCompany,
+            RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+            {
+                ["scope"] = "Directory",
+                ["resultCount"] = companies.Count
+            }),
+            cancellationToken);
+
+        return Ok(companies);
+    }
+
     [HttpGet("{companyCode:guid}")]
     [ProducesResponseType<CompanyDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -257,8 +314,31 @@ public sealed class CompaniesController : ControllerBase
         return Forbid();
     }
 
+    private async Task<IReadOnlyDictionary<Guid, CompanyUsageProjection>> GetCompanyUsageStatsAsync(
+        CancellationToken cancellationToken)
+    {
+        var stats = await _dbContext.Users
+            .AsNoTracking()
+            .Where(user => user.CompanyCode != Guid.Empty)
+            .GroupBy(user => user.CompanyCode)
+            .Select(group => new CompanyUsageProjection(
+                group.Key,
+                group.Any(user => user.IsActive),
+                group.Count(),
+                group.Min(user => user.CreatedAtUtc)))
+            .ToListAsync(cancellationToken);
+
+        return stats.ToDictionary(item => item.CompanyCode);
+    }
+
     private sealed record CompanyUserProjection(
         Guid CompanyCode,
         bool IsActive,
+        DateTime CreatedAtUtc);
+
+    private sealed record CompanyUsageProjection(
+        Guid CompanyCode,
+        bool IsActive,
+        int UsersCount,
         DateTime CreatedAtUtc);
 }

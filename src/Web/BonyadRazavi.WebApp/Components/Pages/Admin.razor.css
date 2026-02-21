@@ -307,6 +307,78 @@
             color: #4f5f93;
         }
 
+.admin-company-picker {
+    align-items: center;
+    display: flex;
+    gap: 0.55rem;
+}
+
+    .admin-company-picker input {
+        flex: 1;
+    }
+
+.admin-picker-toggle {
+    font-size: 0.9rem;
+    min-height: 40px;
+    min-width: 130px;
+    padding: 0 0.9rem;
+}
+
+.admin-company-list-panel {
+    background: #fff;
+    border: 1px solid #c9d4f7;
+    border-radius: 10px;
+    margin-top: 0.45rem;
+    padding: 0.55rem;
+}
+
+.admin-company-search {
+    border: 1px solid #c9d4f7;
+    border-radius: 8px;
+    min-height: 36px;
+    padding: 0 0.6rem;
+    width: 100%;
+}
+
+.admin-company-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-left: 0.1rem;
+}
+
+.admin-company-item {
+    background: #eef2ff;
+    border: 1px solid #d0dbff;
+    border-radius: 8px;
+    color: #16397e;
+    cursor: pointer;
+    min-height: 34px;
+    padding: 0.35rem 0.55rem;
+    text-align: right;
+    width: 100%;
+}
+
+    .admin-company-item:hover {
+        background: #dfe8ff;
+    }
+
+    .admin-company-item.is-selected {
+        background: #cad8ff;
+        border-color: #8da4ef;
+        color: #102a5a;
+        font-weight: 700;
+    }
+
+.admin-company-empty {
+    color: #475c98;
+    padding: 0.35rem 0.3rem;
+    text-align: center;
+}
+
 .admin-form-span-2 {
     grid-column: span 2;
 }
@@ -516,9 +588,8 @@
         gap: 1rem;
     }
 
-    .welcome-title {
-        font-size: 1rem;
-        margin: 1rem 0 1.2rem 0;
+    .admin-modal-actions {
+        justify-content: stretch;
     }
 
     .today-strip {

@@ -18,34 +18,6 @@ public static class DependencyInjection
         services.Configure<CompanyDirectoryOptions>(configuration.GetSection(CompanyDirectoryOptions.SectionName));
         services.Configure<RefreshTokenOptions>(configuration.GetSection(RefreshTokenOptions.SectionName));
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
-
-        var persistenceOptions = configuration.GetSection(PersistenceOptions.SectionName).Get<PersistenceOptions>()
-            ?? new PersistenceOptions();
-
-        if (!persistenceOptions.UseSqlServer)
-        {
-            services.AddDbContext<AuthDbContext>(options => options.UseInMemoryDatabase("BonyadRazavi.Auth.InMemory"));
-            services.AddSingleton<IUserRepository, InMemoryUserRepository>();
-            services.AddSingleton<ICompanyDirectoryService, InMemoryCompanyDirectoryService>();
-            services.AddSingleton<IUserActionLogService, NoOpUserActionLogService>();
-            services.AddSingleton<IRefreshTokenService, InMemoryRefreshTokenService>();
-            return services;
-        }
-
-        var environmentConnectionString = Environment.GetEnvironmentVariable("AUTH_DB_CONNECTION_STRING");
-        var connectionString = !string.IsNullOrWhiteSpace(environmentConnectionString)
-            ? environmentConnectionString
-            : configuration.GetConnectionString(persistenceOptions.ConnectionStringName);
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException(
-                $"Connection string '{persistenceOptions.ConnectionStringName}' is missing. Set it in User Secrets or AUTH_DB_CONNECTION_STRING.");
-        }
-
-        services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(connectionString));
-        services.AddScoped<IUserRepository, SqlUserRepository>();
-        services.AddScoped<IUserActionLogService, DbUserActionLogService>();
-        services.AddScoped<IRefreshTokenService, DbRefreshTokenService>();
         services.AddSingleton<ICompanyDirectoryService>(serviceProvider =>
         {
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
@@ -71,6 +43,33 @@ public static class DependencyInjection
 
             return new SqlCompanyDirectoryService(externalConnectionString, logger);
         });
+
+        var persistenceOptions = configuration.GetSection(PersistenceOptions.SectionName).Get<PersistenceOptions>()
+            ?? new PersistenceOptions();
+
+        if (!persistenceOptions.UseSqlServer)
+        {
+            services.AddDbContext<AuthDbContext>(options => options.UseInMemoryDatabase("BonyadRazavi.Auth.InMemory"));
+            services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+            services.AddSingleton<IUserActionLogService, NoOpUserActionLogService>();
+            services.AddSingleton<IRefreshTokenService, InMemoryRefreshTokenService>();
+            return services;
+        }
+
+        var environmentConnectionString = Environment.GetEnvironmentVariable("AUTH_DB_CONNECTION_STRING");
+        var connectionString = !string.IsNullOrWhiteSpace(environmentConnectionString)
+            ? environmentConnectionString
+            : configuration.GetConnectionString(persistenceOptions.ConnectionStringName);
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                $"Connection string '{persistenceOptions.ConnectionStringName}' is missing. Set it in User Secrets or AUTH_DB_CONNECTION_STRING.");
+        }
+
+        services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddScoped<IUserRepository, SqlUserRepository>();
+        services.AddScoped<IUserActionLogService, DbUserActionLogService>();
+        services.AddScoped<IRefreshTokenService, DbRefreshTokenService>();
 
         return services;
     }

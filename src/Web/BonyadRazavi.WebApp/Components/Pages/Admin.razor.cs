@@ -1,3 +1,4 @@
+using BonyadRazavi.Shared.Contracts.Companies;
 using BonyadRazavi.Shared.Contracts.Users;
 using BonyadRazavi.WebApp.Services;
 using Microsoft.AspNetCore.Components;
@@ -22,12 +23,17 @@ public partial class Admin
 
     private readonly List<UserDto> _users = [];
     private readonly HashSet<string> _editorRoles = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<CompanyDto> _companyDirectory = [];
 
     private bool _isLoading;
     private bool _isEditorOpen;
     private bool _isSavingUser;
+    private bool _companyDirectoryLoaded;
+    private bool _isLoadingCompanyDirectory;
+    private bool _isCompanyPickerOpen;
     private string? _errorMessage;
     private string? _searchTerm;
+    private string? _companySearchTerm;
     private int _currentPage = 1;
     private int _pageSize = DefaultPageSize;
     private int _totalCount;
@@ -50,6 +56,28 @@ public partial class Admin
             : IsEditMode ? "ثبت اصلاحات" : "ایجاد کاربر";
     private bool CanGoToPreviousPage => _currentPage > 1;
     private bool CanGoToNextPage => _currentPage * _pageSize < _totalCount;
+    private string SelectedCompanyName => string.IsNullOrWhiteSpace(_editorCompanyName) ? "-" : _editorCompanyName;
+    private IReadOnlyList<CompanyDto> FilteredCompanies
+    {
+        get
+        {
+            var normalizedSearch = _companySearchTerm?.Trim();
+            IEnumerable<CompanyDto> query = _companyDirectory;
+
+            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            {
+                query = query.Where(company =>
+                    (!string.IsNullOrWhiteSpace(company.CompanyName) &&
+                     company.CompanyName.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase)) ||
+                    company.CompanyCode.ToString("D").Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return query
+                .OrderBy(company => company.CompanyName ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(company => company.CompanyCode)
+                .ToList();
+        }
+    }
 
     private bool IsAdmin =>
         UserSession.Current?.Roles?.Any(role =>
@@ -70,6 +98,7 @@ public partial class Admin
         }
 
         await LoadUsersAsync();
+        await EnsureCompanyDirectoryLoadedAsync();
     }
 
     private async Task LoadUsersAsync()
@@ -124,6 +153,54 @@ public partial class Admin
         finally
         {
             _isLoading = false;
+        }
+    }
+
+    private async Task EnsureCompanyDirectoryLoadedAsync()
+    {
+        if (_companyDirectoryLoaded || _isLoadingCompanyDirectory)
+        {
+            return;
+        }
+
+        _isLoadingCompanyDirectory = true;
+        try
+        {
+            if (!await EnsureValidAccessTokenAsync())
+            {
+                return;
+            }
+
+            var token = UserSession.Current!.AccessToken;
+            var result = await UsersApiClient.GetCompanyDirectoryAsync(token);
+            if (!result.IsSuccess && result.StatusCode == StatusCodes.Status401Unauthorized)
+            {
+                if (!await TryRefreshSessionAsync())
+                {
+                    return;
+                }
+
+                result = await UsersApiClient.GetCompanyDirectoryAsync(UserSession.Current!.AccessToken);
+            }
+
+            if (!result.IsSuccess)
+            {
+                _errorMessage = result.ErrorMessage ?? "دریافت لیست شرکت‌ها ناموفق بود.";
+                return;
+            }
+
+            _companyDirectory.Clear();
+            _companyDirectory.AddRange(result.Companies);
+            _companyDirectoryLoaded = true;
+            SyncEditorCompanyName();
+        }
+        catch
+        {
+            _errorMessage = "در دریافت اطلاعات شرکت‌ها خطا رخ داد.";
+        }
+        finally
+        {
+            _isLoadingCompanyDirectory = false;
         }
     }
 
@@ -195,8 +272,10 @@ public partial class Admin
         await LoadUsersAsync();
     }
 
-    private void OpenCreateUserDialog()
+    private async Task OpenCreateUserDialog()
     {
+        await EnsureCompanyDirectoryLoadedAsync();
+
         _editingUserId = null;
         _editorUserName = string.Empty;
         _editorDisplayName = string.Empty;
@@ -208,15 +287,20 @@ public partial class Admin
         _editorIsActive = true;
         _editorIsCompanyActive = true;
         _userEditorError = null;
+        _isCompanyPickerOpen = false;
+        _companySearchTerm = string.Empty;
 
         _editorRoles.Clear();
         _editorRoles.Add("User");
 
+        SyncEditorCompanyName();
         _isEditorOpen = true;
     }
 
-    private void OpenEditUserDialog(UserDto user)
+    private async Task OpenEditUserDialog(UserDto user)
     {
+        await EnsureCompanyDirectoryLoadedAsync();
+
         _editingUserId = user.UserId;
         _editorUserName = user.UserName;
         _editorDisplayName = user.DisplayName;
@@ -226,6 +310,8 @@ public partial class Admin
         _editorIsActive = user.IsActive;
         _editorIsCompanyActive = user.IsCompanyActive;
         _userEditorError = null;
+        _isCompanyPickerOpen = false;
+        _companySearchTerm = string.Empty;
 
         _editorRoles.Clear();
         foreach (var role in user.Roles.Where(role => !string.IsNullOrWhiteSpace(role)))
@@ -238,6 +324,7 @@ public partial class Admin
             _editorRoles.Add("User");
         }
 
+        SyncEditorCompanyName();
         _isEditorOpen = true;
     }
 
@@ -250,6 +337,8 @@ public partial class Admin
 
         _isEditorOpen = false;
         _userEditorError = null;
+        _isCompanyPickerOpen = false;
+        _companySearchTerm = string.Empty;
     }
 
     private async Task SaveUserAsync()
@@ -292,6 +381,8 @@ public partial class Admin
             }
 
             _isEditorOpen = false;
+            _isCompanyPickerOpen = false;
+            _companySearchTerm = string.Empty;
             await LoadUsersAsync();
         }
         catch
@@ -313,6 +404,9 @@ public partial class Admin
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        SyncEditorCompanyName();
+        var companyName = string.IsNullOrWhiteSpace(_editorCompanyName) ? null : _editorCompanyName.Trim();
+
         if (IsEditMode)
         {
             var updateRequest = new UpdateUserRequest
@@ -321,7 +415,7 @@ public partial class Admin
                 Password = string.IsNullOrWhiteSpace(_editorPassword) ? null : _editorPassword,
                 Roles = selectedRoles,
                 CompanyCode = companyCode,
-                CompanyName = string.IsNullOrWhiteSpace(_editorCompanyName) ? null : _editorCompanyName.Trim(),
+                CompanyName = companyName,
                 IsActive = _editorIsActive,
                 IsCompanyActive = _editorIsCompanyActive
             };
@@ -339,7 +433,7 @@ public partial class Admin
             Password = _editorPassword,
             Roles = selectedRoles,
             CompanyCode = companyCode,
-            CompanyName = string.IsNullOrWhiteSpace(_editorCompanyName) ? null : _editorCompanyName.Trim(),
+            CompanyName = companyName,
             IsActive = _editorIsActive,
             IsCompanyActive = _editorIsCompanyActive
         };
@@ -401,8 +495,43 @@ public partial class Admin
             return true;
         }
 
-        _userEditorError = "کد شرکت معتبر نیست.";
+        _userEditorError = "شرکت انتخاب‌شده معتبر نیست.";
         return false;
+    }
+
+    private async Task ToggleCompanyPickerAsync()
+    {
+        if (_isCompanyPickerOpen)
+        {
+            _isCompanyPickerOpen = false;
+            _companySearchTerm = string.Empty;
+            return;
+        }
+
+        await EnsureCompanyDirectoryLoadedAsync();
+        _isCompanyPickerOpen = true;
+    }
+
+    private void SelectCompany(CompanyDto company)
+    {
+        _editorCompanyCode = company.CompanyCode.ToString("D");
+        _editorCompanyName = company.CompanyName ?? string.Empty;
+        _isCompanyPickerOpen = false;
+        _companySearchTerm = string.Empty;
+        _userEditorError = null;
+    }
+
+    private bool IsSelectedCompany(CompanyDto company)
+    {
+        return Guid.TryParse(_editorCompanyCode, out var selectedCompanyCode) &&
+               selectedCompanyCode == company.CompanyCode;
+    }
+
+    private static string GetCompanyLabel(CompanyDto company)
+    {
+        return string.IsNullOrWhiteSpace(company.CompanyName)
+            ? company.CompanyCode.ToString("D")
+            : company.CompanyName;
     }
 
     private bool IsRoleSelected(string role)
@@ -423,6 +552,31 @@ public partial class Admin
         else
         {
             _editorRoles.Remove(role);
+        }
+    }
+
+    private void SyncEditorCompanyName()
+    {
+        if (!Guid.TryParse(_editorCompanyCode, out var companyCode))
+        {
+            if (string.IsNullOrWhiteSpace(_editorCompanyCode))
+            {
+                _editorCompanyName = string.Empty;
+            }
+
+            return;
+        }
+
+        var selected = _companyDirectory.FirstOrDefault(company => company.CompanyCode == companyCode);
+        if (selected is not null)
+        {
+            _editorCompanyName = selected.CompanyName ?? string.Empty;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_editorCompanyName))
+        {
+            _editorCompanyName = "نام شرکت یافت نشد";
         }
     }
 

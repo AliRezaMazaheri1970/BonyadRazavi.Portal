@@ -115,6 +115,16 @@ public sealed class AuthenticationServiceTests
                 new CompanyDirectoryEntry(companyCode, "Test Company"));
         }
 
+        public Task<IReadOnlyCollection<CompanyDirectoryEntry>> GetAllAsync(
+            CancellationToken cancellationToken = default)
+        {
+            IReadOnlyCollection<CompanyDirectoryEntry> entries =
+            [
+                new CompanyDirectoryEntry(Guid.NewGuid(), "Test Company")
+            ];
+            return Task.FromResult(entries);
+        }
+
         public Task<IReadOnlyDictionary<Guid, string?>> GetNamesByCodesAsync(
             IReadOnlyCollection<Guid> companyCodes,
             CancellationToken cancellationToken = default)

@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using BonyadRazavi.Shared.Contracts.Companies;
 using BonyadRazavi.Shared.Contracts.Users;
 using Microsoft.AspNetCore.Mvc;
 
@@ -117,6 +118,26 @@ public sealed class UsersApiClient
             "ویرایش کاربر ناموفق بود.",
             cancellationToken);
         return UserMutationApiResult.Failed(message, (int)response.StatusCode);
+    }
+
+    public async Task<CompanyDirectoryApiResult> GetCompanyDirectoryAsync(
+        string accessToken,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = CreateAuthorizedJsonRequest(HttpMethod.Get, "api/companies/directory", accessToken);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var companies = await response.Content.ReadFromJsonAsync<List<CompanyDto>>(cancellationToken);
+            return CompanyDirectoryApiResult.Succeeded(companies ?? []);
+        }
+
+        var message = await ReadFailureMessageAsync(
+            response,
+            "لیست شرکت‌ها قابل دریافت نیست.",
+            cancellationToken);
+        return CompanyDirectoryApiResult.Failed(message, (int)response.StatusCode);
     }
 
     private static HttpRequestMessage CreateAuthorizedJsonRequest(
