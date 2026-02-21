@@ -102,11 +102,12 @@
 .btns-header {
     display: flex;
     gap: 2rem;
-    width: min(21vw, 100%);
+    /*    width: min(21vw, 100%);*/
 }
 
 .today-strip {
-    width: min(17vw, 100%);
+    width: 300px;
+    min-width: 170px;
     border-radius: 15px;
     background: #d4deff;
     color: #132f7d;
@@ -171,8 +172,9 @@
     border-radius: 15px;
     cursor: pointer;
     font-family: inherit;
-    width: 80%;
+    width: 60%;
     margin: 5px 0;
+    min-width: 125px;
 }
 
     .btn-dashboard:hover {
@@ -198,12 +200,13 @@
 
     .admin-toolbar-header h3 {
         margin: 0;
+        min-width: 90px;
     }
 
 .admin-toolbar-actions {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
+    /*    flex-wrap: wrap;*/
     gap: 0.6rem;
 }
 
@@ -307,78 +310,6 @@
             color: #4f5f93;
         }
 
-.admin-company-picker {
-    align-items: center;
-    display: flex;
-    gap: 0.55rem;
-}
-
-    .admin-company-picker input {
-        flex: 1;
-    }
-
-.admin-picker-toggle {
-    font-size: 0.9rem;
-    min-height: 40px;
-    min-width: 130px;
-    padding: 0 0.9rem;
-}
-
-.admin-company-list-panel {
-    background: #fff;
-    border: 1px solid #c9d4f7;
-    border-radius: 10px;
-    margin-top: 0.45rem;
-    padding: 0.55rem;
-}
-
-.admin-company-search {
-    border: 1px solid #c9d4f7;
-    border-radius: 8px;
-    min-height: 36px;
-    padding: 0 0.6rem;
-    width: 100%;
-}
-
-.admin-company-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    margin-top: 0.55rem;
-    max-height: 180px;
-    overflow-y: auto;
-    padding-left: 0.1rem;
-}
-
-.admin-company-item {
-    background: #eef2ff;
-    border: 1px solid #d0dbff;
-    border-radius: 8px;
-    color: #16397e;
-    cursor: pointer;
-    min-height: 34px;
-    padding: 0.35rem 0.55rem;
-    text-align: right;
-    width: 100%;
-}
-
-    .admin-company-item:hover {
-        background: #dfe8ff;
-    }
-
-    .admin-company-item.is-selected {
-        background: #cad8ff;
-        border-color: #8da4ef;
-        color: #102a5a;
-        font-weight: 700;
-    }
-
-.admin-company-empty {
-    color: #475c98;
-    padding: 0.35rem 0.3rem;
-    text-align: center;
-}
-
 .admin-form-span-2 {
     grid-column: span 2;
 }
@@ -427,7 +358,10 @@
     justify-content: flex-end;
     margin-top: 1.2rem;
 }
-
+.admin-company-picker {
+    display: flex;
+    gap: 2rem;
+}
 .users-table {
     width: 100%;
     border-collapse: collapse;
@@ -448,22 +382,9 @@
 }
 
 @media (max-width: 1701px) {
-
-    .today-strip {
-        font-size: .9rem;
-        font-weight: bold;
-        width: inherit;
-        padding: 0;
-    }
 }
 
 @media (max-width: 1400px) {
-
-
-    .today-strip {
-        font-size: .7rem;
-        min-height: 50px;
-    }
 }
 
 @media (max-width: 1340px) {
@@ -474,22 +395,9 @@
     .service-grid {
         grid-template-columns: repeat(3, minmax(150px, 1fr));
     }
-
-    .btn-dashboard {
-        width: inherit;
-        padding: 0 5px;
-    }
 }
 
 @media (max-width: 1266px) {
-    .btn-dashboard {
-        width: inherit;
-        padding: 0 10px;
-    }
-
-    .today-strip {
-        width: inherit;
-    }
 }
 
 @media (max-width: 1120px) {
@@ -512,30 +420,20 @@
     .btns-header {
         display: flex;
         gap: 1rem;
-        width: min(40vw, 100%);
-        margin-left: 80px;
+        /*        width: min(40vw, 100%);*/
+        margin-left: 10vw;
     }
-
-    .btn-dashboard {
-        width: inherit;
-        padding: 0 20px;
-    }
-
-     
-      
 }
 
 @media (max-width: 914px) {
-    .today-strip {
-        width: inherit;
-    }
+
 
     .admin-card {
-        overflow:auto;
+        overflow: auto;
     }
+
     .dashboard-action {
-        
-        min-width: 100px;
+        min-width: 111px;
         padding: 0 .5rem;
         margin: 5px 0;
     }
@@ -560,26 +458,28 @@
         font-size: 1.5rem;
     }
 
-    .chat-entry {
-        font-size: 1.55rem;
+    .header-dashboard {
+        flex-wrap: wrap;
     }
 }
 
 @media (max-width: 591px) {
     .service-grid {
         grid-template-columns: 1fr;
+        padding: 15px;
     }
 
-    .today-strip {
-        width: 50%;
+    .admin-card {
+        padding: 5px;
     }
+
     .user-strip {
         justify-content: right;
     }
+
         .user-strip p {
             font-size: .95rem;
         }
-
 }
 
 @media (max-width: 484px) {
@@ -588,11 +488,24 @@
         gap: 1rem;
     }
 
-    .admin-modal-actions {
-        justify-content: stretch;
+    .welcome-title {
+        font-size: 1rem;
+        margin: 1rem 0 1.2rem 0;
     }
 
     .today-strip {
+        width: 100%;
+    }
+
+    .admin-toolbar-header {
+        flex-wrap: wrap;
+    }
+
+    .admin-toolbar-actions {
+        width: 100%;
+    }
+
+    .dashboard-action {
         width: 100%;
     }
 }
