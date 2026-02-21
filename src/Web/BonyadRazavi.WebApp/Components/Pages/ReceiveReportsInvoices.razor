@@ -1,6 +1,6 @@
 ﻿@page "/Receive-reports-invoices"
 @using BonyadRazavi.WebApp.Components.Shared
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 @* <div class="receive-reports-page"> *@
 @* <DashboardSidebar/> *@
@@ -58,15 +58,18 @@
                                     <input type="number"
                                            class="filter-input"
                                            @bind="searchTotalPrice"
-                                           @bind:event="OnPriceChanged"
-                                           @oninput="OnPriceChanged"
+                                           @bind:event="oninput"
                                            placeholder="حداقل قیمت..." />
                                 </th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @if (FilteredAndSortedInvoices.Any())
+                            @if (_isLoading)
+                            {
+                                <tr><td colspan="5" style="text-align:center;">در حال بارگذاری...</td></tr>
+                            }
+                            else if (FilteredAndSortedInvoices.Any())
                             {
                                 @foreach (var item in FilteredAndSortedInvoices)
                                 {
@@ -81,7 +84,7 @@
                             }
                             else
                             {
-                                <tr><td colspan="4" style="text-align:center;">داده‌ای یافت نشد!</td></tr>
+                                <tr><td colspan="5" style="text-align:center;">@(_errorMessage ?? "داده‌ای یافت نشد!")</td></tr>
                             }
                         </tbody>
                     </table>

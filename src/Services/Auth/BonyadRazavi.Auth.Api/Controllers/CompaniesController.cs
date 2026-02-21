@@ -17,15 +17,18 @@ public sealed class CompaniesController : ControllerBase
 {
     private readonly AuthDbContext _dbContext;
     private readonly ICompanyDirectoryService _companyDirectoryService;
+    private readonly ICompanyInvoiceReportService _companyInvoiceReportService;
     private readonly IUserActionLogService _userActionLogService;
 
     public CompaniesController(
         AuthDbContext dbContext,
         ICompanyDirectoryService companyDirectoryService,
+        ICompanyInvoiceReportService companyInvoiceReportService,
         IUserActionLogService userActionLogService)
     {
         _dbContext = dbContext;
         _companyDirectoryService = companyDirectoryService;
+        _companyInvoiceReportService = companyInvoiceReportService;
         _userActionLogService = userActionLogService;
     }
 
@@ -153,6 +156,85 @@ public sealed class CompaniesController : ControllerBase
             cancellationToken);
 
         return Ok(companies);
+    }
+
+    [HttpGet("invoices")]
+    [ProducesResponseType<IReadOnlyCollection<CompanyInvoiceDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyCollection<CompanyInvoiceDto>>> GetCompanyInvoices(
+        CancellationToken cancellationToken = default)
+    {
+        if (!TenantContextResolver.TryGetCompanyCode(User, out var actorCompanyCode))
+        {
+            return await ForbidWithSecurityLogAsync(
+                "MissingCompanyClaim",
+                new Dictionary<string, object?>
+                {
+                    ["attemptedAction"] = "Companies.ReadInvoices"
+                },
+                cancellationToken);
+        }
+
+        var invoices = await _companyInvoiceReportService.GetInvoicesByCompanyAsync(
+            actorCompanyCode,
+            cancellationToken);
+
+        await _userActionLogService.LogAsync(
+            RequestAuditMetadataFactory.ResolveAuthenticatedUserId(User),
+            AuditActionTypes.ViewReport,
+            RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+            {
+                ["scope"] = "Invoices",
+                ["companyCode"] = actorCompanyCode,
+                ["resultCount"] = invoices.Count
+            }),
+            cancellationToken);
+
+        return Ok(invoices);
+    }
+
+    [HttpGet("invoices/{masterBillCode:guid}/pdf")]
+    [Produces("application/pdf")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DownloadCompanyInvoicePdf(
+        Guid masterBillCode,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TenantContextResolver.TryGetCompanyCode(User, out var actorCompanyCode))
+        {
+            return await ForbidWithSecurityLogAsync(
+                "MissingCompanyClaim",
+                new Dictionary<string, object?>
+                {
+                    ["attemptedAction"] = "Companies.DownloadInvoicePdf",
+                    ["masterBillCode"] = masterBillCode
+                },
+                cancellationToken);
+        }
+
+        var document = await _companyInvoiceReportService.GetInvoicePdfAsync(
+            actorCompanyCode,
+            masterBillCode,
+            cancellationToken);
+        if (document is null)
+        {
+            return NotFound();
+        }
+
+        await _userActionLogService.LogAsync(
+            RequestAuditMetadataFactory.ResolveAuthenticatedUserId(User),
+            AuditActionTypes.ViewReport,
+            RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+            {
+                ["scope"] = "InvoicePdf",
+                ["companyCode"] = actorCompanyCode,
+                ["masterBillCode"] = masterBillCode
+            }),
+            cancellationToken);
+
+        return File(document.Content, document.ContentType, document.FileName);
     }
 
     [HttpGet("{companyCode:guid}")]

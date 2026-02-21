@@ -1,6 +1,7 @@
 using BonyadRazavi.WebApp.Components;
 using BonyadRazavi.WebApp.Configuration;
 using BonyadRazavi.WebApp.Services;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.Configure<ApiGatewayOptions>(builder.Configuration.GetSection(ApiGatewayOptions.SectionName));
+builder.Services.AddScoped<ProtectedLocalStorage>();
 builder.Services.AddScoped<UserSession>();
 builder.Services.AddHttpClient<AuthApiClient>((serviceProvider, httpClient) =>
 {

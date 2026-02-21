@@ -22,8 +22,10 @@ namespace BonyadRazavi.WebApp.Components.Pages
             new("پذیرش آنلاین", "Images/dashboard/reception-online.png", "/lab-tracking")
         ];
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
+            await UserSession.InitializeAsync();
+
             if (!UserSession.IsAuthenticated)
             {
                 Navigation.NavigateTo("/login");

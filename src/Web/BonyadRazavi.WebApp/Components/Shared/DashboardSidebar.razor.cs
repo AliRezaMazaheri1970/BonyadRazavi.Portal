@@ -60,9 +60,9 @@ namespace BonyadRazavi.WebApp.Components.Shared
                 string.Equals(role, "SuperAdmin", StringComparison.OrdinalIgnoreCase));
         }
 
-        private void SignOut()
+        private async Task SignOut()
         {
-            UserSession.SignOut();
+            await UserSession.SignOutAsync();
             Navigation.NavigateTo("/login");
         }
     }

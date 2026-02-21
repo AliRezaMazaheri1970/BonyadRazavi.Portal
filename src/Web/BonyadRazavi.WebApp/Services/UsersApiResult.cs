@@ -48,3 +48,30 @@ public sealed record CompanyDirectoryApiResult(
     public static CompanyDirectoryApiResult Failed(string errorMessage, int? statusCode = null) =>
         new(false, [], errorMessage, statusCode);
 }
+
+public sealed record CompanyInvoicesApiResult(
+    bool IsSuccess,
+    IReadOnlyList<CompanyInvoiceDto> Invoices,
+    string? ErrorMessage,
+    int? StatusCode)
+{
+    public static CompanyInvoicesApiResult Succeeded(IReadOnlyList<CompanyInvoiceDto> invoices) =>
+        new(true, invoices, null, null);
+
+    public static CompanyInvoicesApiResult Failed(string errorMessage, int? statusCode = null) =>
+        new(false, [], errorMessage, statusCode);
+}
+
+public sealed record InvoicePdfApiResult(
+    bool IsSuccess,
+    byte[] FileBytes,
+    string? FileName,
+    string? ErrorMessage,
+    int? StatusCode)
+{
+    public static InvoicePdfApiResult Succeeded(byte[] fileBytes, string? fileName) =>
+        new(true, fileBytes, fileName, null, null);
+
+    public static InvoicePdfApiResult Failed(string errorMessage, int? statusCode = null) =>
+        new(false, [], null, errorMessage, statusCode);
+}

@@ -154,6 +154,7 @@ public sealed class CompaniesControllerSecurityTests
         var controller = new CompaniesController(
             dbContext,
             new StubCompanyDirectoryService(),
+            new StubCompanyInvoiceReportService(),
             new NoOpUserActionLogService());
 
         var principal = BuildPrincipal(Guid.NewGuid(), $"actor-{role}", role, companyCode);
@@ -237,6 +238,24 @@ public sealed class CompaniesControllerSecurityTests
                 .Distinct()
                 .ToDictionary(code => code, code => (string?)$"Company-{code}");
             return Task.FromResult<IReadOnlyDictionary<Guid, string?>>(map);
+        }
+    }
+
+    private sealed class StubCompanyInvoiceReportService : ICompanyInvoiceReportService
+    {
+        public Task<IReadOnlyCollection<CompanyInvoiceDto>> GetInvoicesByCompanyAsync(
+            Guid companyCode,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyCollection<CompanyInvoiceDto>>([]);
+        }
+
+        public Task<CompanyInvoiceDocument?> GetInvoicePdfAsync(
+            Guid companyCode,
+            Guid masterBillCode,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<CompanyInvoiceDocument?>(null);
         }
     }
 }

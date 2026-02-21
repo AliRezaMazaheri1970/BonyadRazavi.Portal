@@ -43,6 +43,31 @@ public static class DependencyInjection
 
             return new SqlCompanyDirectoryService(externalConnectionString, logger);
         });
+        services.AddSingleton<ICompanyInvoiceReportService>(serviceProvider =>
+        {
+            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<SqlCompanyInvoiceReportService>();
+            var companyDirectoryOptions = configuration
+                .GetSection(CompanyDirectoryOptions.SectionName)
+                .Get<CompanyDirectoryOptions>()
+                ?? new CompanyDirectoryOptions();
+
+            var externalConnectionString =
+                Environment.GetEnvironmentVariable("LABORATORY_RASF_CONNECTION_STRING");
+            if (string.IsNullOrWhiteSpace(externalConnectionString))
+            {
+                externalConnectionString = configuration.GetConnectionString(companyDirectoryOptions.ConnectionStringName);
+            }
+
+            if (string.IsNullOrWhiteSpace(externalConnectionString))
+            {
+                logger.LogWarning(
+                    "External invoice source connection string is missing. Falling back to in-memory invoice report service.");
+                return new InMemoryCompanyInvoiceReportService();
+            }
+
+            return new SqlCompanyInvoiceReportService(externalConnectionString, logger);
+        });
 
         var persistenceOptions = configuration.GetSection(PersistenceOptions.SectionName).Get<PersistenceOptions>()
             ?? new PersistenceOptions();

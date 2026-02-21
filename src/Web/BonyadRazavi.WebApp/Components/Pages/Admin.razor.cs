@@ -86,6 +86,8 @@ public partial class Admin
 
     protected override async Task OnInitializedAsync()
     {
+        await UserSession.InitializeAsync();
+
         if (!UserSession.IsAuthenticated || UserSession.Current is null)
         {
             Navigation.NavigateTo("/login");
@@ -240,7 +242,7 @@ public partial class Admin
             return false;
         }
 
-        UserSession.SignIn(refreshResult.Payload);
+        await UserSession.SignInAsync(refreshResult.Payload);
         return true;
     }
 

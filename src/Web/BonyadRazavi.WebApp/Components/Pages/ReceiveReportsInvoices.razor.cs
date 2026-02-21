@@ -1,177 +1,323 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop; // ضروری برای تقویم
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BonyadRazavi.Shared.Contracts.Companies;
+using BonyadRazavi.WebApp.Services;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Http;
+using Microsoft.JSInterop;
 
-namespace BonyadRazavi.WebApp.Components.Pages
+namespace BonyadRazavi.WebApp.Components.Pages;
+
+public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
 {
-    public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
+    private static readonly TimeSpan TokenRefreshSkew = TimeSpan.FromSeconds(30);
+
+    [Inject] public NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] public IJSRuntime JS { get; set; } = default!;
+    [Inject] public UserSession UserSession { get; set; } = default!;
+    [Inject] public AuthApiClient AuthApiClient { get; set; } = default!;
+    [Inject] public UsersApiClient UsersApiClient { get; set; } = default!;
+
+    public class Invoice
     {
-        [Inject] public NavigationManager NavigationManager { get; set; } = default!;
-        [Inject] public IJSRuntime JS { get; set; } = default!; // تزریق جاوااسکریپت
+        public Guid MasterBillCode { get; set; }
+        public string InvoiceName { get; set; } = string.Empty;
+        public DateTime InvoiceDate { get; set; }
+        public string ContractNumber { get; set; } = string.Empty;
+        public decimal TotalPrice { get; set; }
+    }
 
-        public class Invoice
+    private List<Invoice> invoices = [];
+    private string searchName = string.Empty;
+    private string searchContract = string.Empty;
+    private decimal? searchTotalPrice;
+    private string searchFromDate = string.Empty;
+    private string searchToDate = string.Empty;
+    private string sortColumn = string.Empty;
+    private bool isAscending = true;
+    private bool _isLoading;
+    private string? _errorMessage;
+    private DotNetObjectReference<ReceiveReportsInvoices>? dotNetRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UserSession.InitializeAsync();
+
+        if (!UserSession.IsAuthenticated || UserSession.Current is null)
         {
-            public string InvoiceName { get; set; } = string.Empty;
-            public DateTime InvoiceDate { get; set; }
-            public string ContractNumber { get; set; } = string.Empty;
-
-            public int TotalPrice { get; set; }
+            NavigationManager.NavigateTo("/login");
+            return;
         }
 
-        private List<Invoice> invoices = new();
-        private string searchName = "";
-        private string searchContract = "";
-        private int? searchTotalPrice;
+        await LoadInvoicesAsync();
+    }
 
-        // برگرداندن به استرینگ برای جلوگیری از خطای سال ۱۴۰۴ در دات‌نت
-        private string searchFromDate = "";
-        private string searchToDate = "";
-
-        private string sortColumn = "";
-        private bool isAscending = true;
-
-        private DotNetObjectReference<ReceiveReportsInvoices>? dotNetRef;
-
-        protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            invoices = new List<Invoice>
-            {
-                new Invoice { InvoiceName = "هزینه سرور", InvoiceDate = new DateTime(1404, 10, 05), ContractNumber = "CTR-1001" , TotalPrice = 178000000 },
-                new Invoice { InvoiceName = "پشتیبانی نرم‌افزار", InvoiceDate = new DateTime(1404, 10, 12), ContractNumber = "CTR-1005" , TotalPrice = 245000000 },
-                new Invoice { InvoiceName = "خرید تجهیزات", InvoiceDate = new DateTime(1404, 09, 20), ContractNumber = "CTR-1002" , TotalPrice = 79000000 },
-                new Invoice { InvoiceName = "اینترنت", InvoiceDate = new DateTime(1404, 10, 01), ContractNumber = "CTR-1003" , TotalPrice = 119000000},
-              
-              
-
-            };
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("initShamsiPicker", "fromDate", dotNetRef, nameof(SetFromDate));
+            await JS.InvokeVoidAsync("initShamsiPicker", "toDate", dotNetRef, nameof(SetToDate));
         }
+    }
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+    [JSInvokable]
+    public void SetFromDate(string date)
+    {
+        searchFromDate = date;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void SetToDate(string date)
+    {
+        searchToDate = date;
+        StateHasChanged();
+    }
+
+    private IEnumerable<Invoice> FilteredAndSortedInvoices
+    {
+        get
         {
-            if (firstRender)
+            var query = invoices.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchName))
             {
-                dotNetRef = DotNetObjectReference.Create(this);
-                // فعال‌سازی تقویم‌های جاوااسکریپت پس از لود صفحه
-                await JS.InvokeVoidAsync("initShamsiPicker", "fromDate", dotNetRef, nameof(SetFromDate));
-                await JS.InvokeVoidAsync("initShamsiPicker", "toDate", dotNetRef, nameof(SetToDate));
+                query = query.Where(i => i.InvoiceName.Contains(searchName, StringComparison.OrdinalIgnoreCase));
             }
-        }
 
-        [JSInvokable]
-        public void SetFromDate(string date)
-        {
-            searchFromDate = date;
-            StateHasChanged();
-        }
-
-        [JSInvokable]
-        public void SetToDate(string date)
-        {
-            searchToDate = date;
-            StateHasChanged();
-        }
-
-        private IEnumerable<Invoice> FilteredAndSortedInvoices
-        {
-            get
+            if (!string.IsNullOrWhiteSpace(searchContract))
             {
-                var query = invoices.AsQueryable();
+                query = query.Where(i => i.ContractNumber.Contains(searchContract, StringComparison.OrdinalIgnoreCase));
+            }
 
-                if (!string.IsNullOrWhiteSpace(searchName))
-                    query = query.Where(i => i.InvoiceName.Contains(searchName, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(searchFromDate))
+            {
+                query = query.Where(i =>
+                    string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchFromDate, StringComparison.Ordinal) >= 0);
+            }
 
-                if (!string.IsNullOrWhiteSpace(searchContract))
-                    query = query.Where(i => i.ContractNumber.Contains(searchContract, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(searchToDate))
+            {
+                query = query.Where(i =>
+                    string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchToDate, StringComparison.Ordinal) <= 0);
+            }
 
-                // فیلتر متنی از تاریخ
-                if (!string.IsNullOrWhiteSpace(searchFromDate))
-                    query = query.Where(i => string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchFromDate) >= 0);
+            if (searchTotalPrice.HasValue && searchTotalPrice.Value > 0)
+            {
+                query = query.Where(i => i.TotalPrice >= searchTotalPrice.Value);
+            }
 
-                // فیلتر متنی تا تاریخ
-                if (!string.IsNullOrWhiteSpace(searchToDate))
-                    query = query.Where(i => string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchToDate) <= 0);
-
-                if (searchTotalPrice.HasValue && searchTotalPrice.Value > 0)
+            if (!string.IsNullOrEmpty(sortColumn))
+            {
+                query = sortColumn switch
                 {
-                    // تبدیل عدد به متن برای جستجوی "شامل بودن"
-                    query = query.Where(i => i.TotalPrice.ToString().Contains(searchTotalPrice.Value.ToString()));
+                    "Name" => isAscending ? query.OrderBy(i => i.InvoiceName) : query.OrderByDescending(i => i.InvoiceName),
+                    "Date" => isAscending ? query.OrderBy(i => i.InvoiceDate) : query.OrderByDescending(i => i.InvoiceDate),
+                    "Contract" => isAscending
+                        ? query.OrderBy(i => i.ContractNumber)
+                        : query.OrderByDescending(i => i.ContractNumber),
+                    "Price" => isAscending ? query.OrderBy(i => i.TotalPrice) : query.OrderByDescending(i => i.TotalPrice),
+                    _ => query
+                };
+            }
+
+            return query.ToList();
+        }
+    }
+
+    private async Task LoadInvoicesAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            if (!await EnsureValidAccessTokenAsync())
+            {
+                invoices = [];
+                return;
+            }
+
+            var token = UserSession.Current!.AccessToken;
+            var result = await UsersApiClient.GetCompanyInvoicesAsync(token);
+            if (!result.IsSuccess && result.StatusCode == StatusCodes.Status401Unauthorized)
+            {
+                if (!await TryRefreshSessionAsync())
+                {
+                    invoices = [];
+                    return;
                 }
 
-                if (!string.IsNullOrEmpty(sortColumn))
-                {
-                    if (sortColumn == "Name") query = isAscending ? query.OrderBy(i => i.InvoiceName) : query.OrderByDescending(i => i.InvoiceName);
-                    else if (sortColumn == "Date") query = isAscending ? query.OrderBy(i => i.InvoiceDate) : query.OrderByDescending(i => i.InvoiceDate);
-                    else if (sortColumn == "Contract") query = isAscending ? query.OrderBy(i => i.ContractNumber) : query.OrderByDescending(i => i.ContractNumber);
-                    else if (sortColumn == "Price") query = isAscending ? query.OrderBy(i => i.TotalPrice) : query.OrderByDescending(i => i.TotalPrice);
-                }
-
-                return query.ToList();
+                result = await UsersApiClient.GetCompanyInvoicesAsync(UserSession.Current!.AccessToken);
             }
+
+            if (!result.IsSuccess)
+            {
+                _errorMessage = result.ErrorMessage ?? "دریافت لیست صورتحساب‌ها ناموفق بود.";
+                invoices = [];
+                return;
+            }
+
+            invoices = result.Invoices
+                .Select(MapInvoice)
+                .ToList();
         }
-
-        private void Sort(string column) { if (sortColumn == column) isAscending = !isAscending; else { sortColumn = column; isAscending = true; } }
-        private string GetSortIcon(string column) { if (sortColumn != column) return "↕"; return isAscending ? "↑" : "↓"; }
-        private void GoToDashboard() { NavigationManager.NavigateTo("/dashboard"); }
-        //private void DownloadInvoice(Invoice selectedInvoice) { Console.WriteLine($"Downloading invoice for: {selectedInvoice.ContractNumber}"); }
-
-        public void Dispose() { dotNetRef?.Dispose(); }
-
-
-        private async Task ClearFromDate()
+        catch
         {
-            searchFromDate = ""; 
-
-            await JS.InvokeVoidAsync("clearInputValue", "fromDate");
-
-            StateHasChanged(); 
+            _errorMessage = "در دریافت لیست صورتحساب‌ها خطا رخ داد.";
+            invoices = [];
         }
-
-        private async Task ClearToDate()
+        finally
         {
-            searchToDate = ""; 
-
-            await JS.InvokeVoidAsync("clearInputValue", "toDate");
-
-            StateHasChanged(); 
+            _isLoading = false;
         }
+    }
 
-        // متد دانلود صورتحساب تغییر یافت
-        private async Task DownloadInvoice(Invoice selectedInvoice)
+    private async Task<bool> EnsureValidAccessTokenAsync()
+    {
+        if (UserSession.Current is null)
         {
-            // ۱. تولید محتوای فایل (در پروژه واقعی، اینجا فایل PDF یا اکسل تولید می‌شود)
-            string fileContent = $"بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ\n\n" +
-                                 $"--- جزئیات صورتحساب ---\n" +
-                                 $"عنوان: {selectedInvoice.InvoiceName}\n" +
-                                 $"شماره قرارداد: {selectedInvoice.ContractNumber}\n" +
-                                 $"تاریخ ثبت: {selectedInvoice.InvoiceDate.ToString("yyyy/MM/dd")}\n" +
-                                 $"-----------------------\n" +
-                                 $"سیستم یکپارچه گزارشات";
-
-            // تبدیل متن به آرایه‌ای از بایت‌ها
-            var fileBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
-
-            // ۲. تعیین نام فایلی که کاربر دانلود خواهد کرد
-            string fileName = $"Invoice_{selectedInvoice.ContractNumber}.txt";
-
-            // ۳. ایجاد یک استریم (جریان داده) و ارسال آن به مرورگر کاربر از طریق جاوااسکریپت
-            using var stream = new MemoryStream(fileBytes);
-            using var streamRef = new DotNetStreamReference(stream: stream);
-
-            // فراخوانی تابع جاوااسکریپتی که در فایل App.razor نوشتیم
-            await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+            _errorMessage = "نشست کاربری معتبر نیست. لطفا دوباره وارد شوید.";
+            NavigationManager.NavigateTo("/login");
+            return false;
         }
 
-        private void OnPriceChanged(ChangeEventArgs e)
+        var hasValidAccessToken =
+            !string.IsNullOrWhiteSpace(UserSession.Current.AccessToken) &&
+            UserSession.Current.ExpiresAtUtc > DateTime.UtcNow.Add(TokenRefreshSkew);
+
+        if (hasValidAccessToken)
         {
-            if (int.TryParse(e.Value?.ToString(), out var result))
-                searchTotalPrice = result;
-            else
-                searchTotalPrice = null;
-
-            StateHasChanged(); // اجبار به بازخوانی FilteredAndSortedInvoices
+            return true;
         }
+
+        return await TryRefreshSessionAsync();
+    }
+
+    private async Task<bool> TryRefreshSessionAsync()
+    {
+        var refreshToken = UserSession.Current?.RefreshToken;
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            _errorMessage = "نشست کاربری معتبر نیست. لطفا دوباره وارد شوید.";
+            NavigationManager.NavigateTo("/login");
+            return false;
+        }
+
+        var refreshResult = await AuthApiClient.RefreshAsync(refreshToken);
+        if (!refreshResult.IsSuccess || refreshResult.Payload is null)
+        {
+            _errorMessage = refreshResult.ErrorMessage ?? "نشست کاربری معتبر نیست. لطفا دوباره وارد شوید.";
+            NavigationManager.NavigateTo("/login");
+            return false;
+        }
+
+        await UserSession.SignInAsync(refreshResult.Payload);
+        return true;
+    }
+
+    private static Invoice MapInvoice(CompanyInvoiceDto invoice)
+    {
+        return new Invoice
+        {
+            MasterBillCode = invoice.MasterBillCode,
+            InvoiceName = invoice.BillNo,
+            InvoiceDate = invoice.BillDate,
+            ContractNumber = string.IsNullOrWhiteSpace(invoice.ContractNo)
+                ? "-"
+                : invoice.ContractNo,
+            TotalPrice = invoice.TotalPrice
+        };
+    }
+
+    private void Sort(string column)
+    {
+        if (sortColumn == column)
+        {
+            isAscending = !isAscending;
+        }
+        else
+        {
+            sortColumn = column;
+            isAscending = true;
+        }
+    }
+
+    private string GetSortIcon(string column)
+    {
+        if (sortColumn != column)
+        {
+            return "â†•";
+        }
+
+        return isAscending ? "â†‘" : "â†“";
+    }
+
+    private void GoToDashboard()
+    {
+        NavigationManager.NavigateTo("/dashboard");
+    }
+
+    public void Dispose()
+    {
+        dotNetRef?.Dispose();
+    }
+
+    private async Task ClearFromDate()
+    {
+        searchFromDate = string.Empty;
+        await JS.InvokeVoidAsync("clearInputValue", "fromDate");
+        StateHasChanged();
+    }
+
+    private async Task ClearToDate()
+    {
+        searchToDate = string.Empty;
+        await JS.InvokeVoidAsync("clearInputValue", "toDate");
+        StateHasChanged();
+    }
+
+    private async Task DownloadInvoice(Invoice selectedInvoice)
+    {
+        if (selectedInvoice.MasterBillCode == Guid.Empty)
+        {
+            _errorMessage = "کد صورتحساب معتبر نیست.";
+            await JS.InvokeVoidAsync("alert", _errorMessage);
+            return;
+        }
+
+        if (!await EnsureValidAccessTokenAsync())
+        {
+            return;
+        }
+
+        var token = UserSession.Current!.AccessToken;
+        var result = await UsersApiClient.DownloadCompanyInvoicePdfAsync(token, selectedInvoice.MasterBillCode);
+        if (!result.IsSuccess && result.StatusCode == StatusCodes.Status401Unauthorized)
+        {
+            if (!await TryRefreshSessionAsync())
+            {
+                return;
+            }
+
+            result = await UsersApiClient.DownloadCompanyInvoicePdfAsync(
+                UserSession.Current!.AccessToken,
+                selectedInvoice.MasterBillCode);
+        }
+
+        if (!result.IsSuccess || result.FileBytes.Length == 0)
+        {
+            _errorMessage = result.ErrorMessage ?? "دانلود صورتحساب ناموفق بود.";
+            await JS.InvokeVoidAsync("alert", _errorMessage);
+            return;
+        }
+
+        var fileName = string.IsNullOrWhiteSpace(result.FileName)
+            ? $"Invoice_{selectedInvoice.InvoiceName}.pdf"
+            : result.FileName;
+
+        using var stream = new MemoryStream(result.FileBytes);
+        using var streamRef = new DotNetStreamReference(stream: stream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
     }
 }

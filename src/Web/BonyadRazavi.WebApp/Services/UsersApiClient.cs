@@ -140,6 +140,64 @@ public sealed class UsersApiClient
         return CompanyDirectoryApiResult.Failed(message, (int)response.StatusCode);
     }
 
+    public async Task<CompanyInvoicesApiResult> GetCompanyInvoicesAsync(
+        string accessToken,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = CreateAuthorizedJsonRequest(HttpMethod.Get, "api/companies/invoices", accessToken);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var invoices = await response.Content.ReadFromJsonAsync<List<CompanyInvoiceDto>>(cancellationToken);
+            return CompanyInvoicesApiResult.Succeeded(invoices ?? []);
+        }
+
+        var message = await ReadFailureMessageAsync(
+            response,
+            "دریافت لیست صورتحساب‌ها ناموفق بود.",
+            cancellationToken);
+        return CompanyInvoicesApiResult.Failed(message, (int)response.StatusCode);
+    }
+
+    public async Task<InvoicePdfApiResult> DownloadCompanyInvoicePdfAsync(
+        string accessToken,
+        Guid masterBillCode,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = CreateAuthorizedJsonRequest(
+            HttpMethod.Get,
+            $"api/companies/invoices/{masterBillCode:D}/pdf",
+            accessToken);
+        using var response = await _httpClient.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var fileBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            var contentDisposition = response.Content.Headers.ContentDisposition;
+            var fileName = contentDisposition?.FileNameStar
+                ?? contentDisposition?.FileName?.Trim('"');
+
+            return InvoicePdfApiResult.Succeeded(fileBytes, fileName);
+        }
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return InvoicePdfApiResult.Failed(
+                "صورتحساب مورد نظر یافت نشد یا دسترسی لازم برای دانلود آن را ندارید.",
+                (int)response.StatusCode);
+        }
+
+        var message = await ReadFailureMessageAsync(
+            response,
+            "دریافت فایل صورتحساب ناموفق بود.",
+            cancellationToken);
+        return InvoicePdfApiResult.Failed(message, (int)response.StatusCode);
+    }
+
     private static HttpRequestMessage CreateAuthorizedJsonRequest(
         HttpMethod method,
         string requestUri,

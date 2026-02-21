@@ -12,8 +12,10 @@ public partial class ChangePassword
     private string? _successMessage;
     private string? _errorMessage;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await UserSession.InitializeAsync();
+
         if (!UserSession.IsAuthenticated)
         {
             Navigation.NavigateTo("/login");
