@@ -26,11 +26,12 @@
 }
 
 .welcome-title {
-    margin:2rem 0 3rem 0;
-/*    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);*/
+    margin: 2rem 0 3rem 0;
+    /*    font-size: clamp(2rem, 1.55rem + 1.2vw, 4rem);*/
     font-size: 2rem;
     font-weight: 500;
     color: white;
+    line-height: 1.5;
 }
 
 .chat-entry {
@@ -59,26 +60,6 @@
     background-image: linear-gradient(180deg, #ccd1ff 0%, #7e97e4 42%, #5371c8 100%);
 }
 
-/*    .service-grid ::deep a.service-card {
-        min-height: 220px;
-        background: #F9F9FD;
-        background: linear-gradient(145deg, #fafafe, #f0effc);
-        box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
-        border-radius: 25px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.7rem;
-        text-decoration: none;
-        transition: all 750ms ease-in-out 0s;
-    }
-
-
-    .service-grid ::deep a.service-card:hover {
-        background: linear-gradient(90deg, #ededff, #e4e4fc);
-
-    }*/
 
     .service-grid ::deep a.service-card {
         position: relative;
@@ -145,11 +126,12 @@
     font-size: 1rem;
     color: #132f7d;
     font-weight: 500;
+    line-height: 1.5rem;
 }
 
 .today-strip {
-    width: min(17vw, 100%);
-    border-radius: 25px;
+    width: min(19vw, 100%);
+    border-radius: 15px;
     background: #d4deff;
     color: #132f7d;
     min-height: 50px;
@@ -159,6 +141,8 @@
     font-size: 1rem;
     text-align: center;
     padding: 0 20px;
+    margin: 5px 0;
+
 }
 
 .dashboard-state {
@@ -193,71 +177,118 @@
     padding: 0 1rem;
 }
 
-@media (max-width: 1400px) {
-    .dashboard-frame {
-        padding: 1rem;
-    }
 
-    .dashboard-side {
-        width: 315px;
-    }
 
-    .user-strip p {
-        font-size: 2rem;
-    }
 
-    .welcome-title {
-        font-size: 2.4rem;
-    }
+/*@media (max-width: 1700px) {
 
-    .chat-entry {
-        min-height: 98px;
-        font-size: 2.8rem;
-    }
 
-    .service-card h3 {
-        font-size: 1.45rem;
-    }
+}*/
+@media (max-width: 1701px) {
 
     .today-strip {
-        font-size: 1.38rem;
-        min-height: 58px;
+        font-size: .9rem;
+        font-weight: bold;
     }
 }
 
-@media (max-width: 1120px) {
-    .dashboard-frame {
-        flex-direction: column-reverse;
-    }
+    @media (max-width: 1400px) {
+       
 
-    .dashboard-side {
-        width: 100%;
+        .today-strip {
+            font-size: .7rem;
+            min-height: 50px;
+        }
     }
-
-    .service-grid {
-        grid-template-columns: repeat(2, minmax(150px, 1fr));
+    @media (max-width: 1340px) {
+        .service-grid {
+            grid-template-columns: repeat(3, minmax(150px, 1fr));
+        }
+        .service-card h3 {
+            margin: 0;
+            text-align: center;
+            font-size: .8rem;
+            color: #132f7d;
+            font-weight: 500;
+        }
+    }
+@media (max-width: 1266px) {
+    .today-strip {
+        width: 35%;
     }
 }
+    @media (max-width: 1120px) {
+        .dashboard-frame {
+            flex-direction: column;
+        }
 
-@media (max-width: 760px) {
+        .dashboard-side {
+            width: 100%;
+        }
+        .dashboard-main {
+            max-width: 100%;
+        }
+        .service-grid {
+            grid-template-columns: repeat(3, minmax(100px, 1fr));
+        }
+        .today-strip {
+            margin: 5px 0 5px 80px;
+            width: 25%;
+        }
+
+    }
+   
+    @media (max-width: 914px) {
+        .today-strip {
+            width:40%;
+        }
+    }
+
+
+    @media (max-width: 760px) {
+        .service-grid {
+            grid-template-columns: repeat(2, minmax(70px, 1fr));
+        }
+
+        .user-strip p {
+            font-size: 1.45rem;
+        }
+
+        .user-avatar {
+            width: 68px;
+            height: 68px;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+        }
+
+        .chat-entry {
+            font-size: 1.55rem;
+        }
+    }
+
+@media (max-width: 591px) {
     .service-grid {
         grid-template-columns: 1fr;
     }
 
-    .user-strip p {
-        font-size: 1.45rem;
+    .today-strip {
+        width: 50%;
+        padding: 0;
     }
-
-    .user-avatar {
-        width: 68px;
-        height: 68px;
+}
+@media (max-width: 484px) {
+    .header-dashboard {
+        flex-direction: column;
+        gap: 1rem;
+        
     }
-
     .welcome-title {
-        font-size: 1.5rem;
+        font-size: 1rem;
+        margin: 1rem 0 1.2rem 0;
     }
-
-    .chat-entry {
-        font-size: 1.55rem;
+    .today-strip {
+        width: 100%;
     }
 }

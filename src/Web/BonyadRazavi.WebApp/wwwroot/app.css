@@ -105,3 +105,35 @@ h1:focus {
     display: flex;
     justify-content: space-between;
 }
+.user-strip {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-strip p {
+    margin: 0;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.user-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 5px solid rgb(255, 255, 255);
+    /*    background: radial-gradient(circle at 34% 22%, #8aa0f4, #1d38a3 78%);*/
+    background: #FFF;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 1.65rem;
+}
+
+.icon-dashboard {
+    width: 2rem;
+    filter: brightness(0) invert(1);
+    padding-left: .4rem;
+}

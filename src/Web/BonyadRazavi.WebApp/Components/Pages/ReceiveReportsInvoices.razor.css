@@ -118,7 +118,7 @@
 
 .today-strip {
     width: min(17vw, 100%);
-    border-radius: 25px;
+    border-radius: 15px;
     background: #d4deff;
     color: #132f7d;
     min-height: 50px;
@@ -160,6 +160,7 @@
     min-height: 44px;
     min-width: 170px;
     padding: 0 1rem;
+    margin: 5px 0;
 }
 
 
@@ -265,7 +266,7 @@
     background-color: #2b24ba;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 15px 30px;
     border-radius: 15px;
     cursor: pointer;
     font-family: inherit;
@@ -279,11 +280,12 @@
     background-color: #28a745;
     color: white;
     border: none;
-    padding: 6px 12px;
+    padding: 6px 0;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.85rem;
     transition: background 0.3s;
+    min-width: 66px;
 }
 
     .btn-download:hover {
@@ -335,36 +337,47 @@
     color: #333;
 }
 
+@media (max-width: 1701px) {
+
+    .today-strip {
+        font-size: .9rem;
+        font-weight: bold;
+    }
+}
 
 @media (max-width: 1400px) {
+
+
+    .today-strip {
+        font-size: .7rem;
+        min-height: 50px;
+    }
+}
+
+@media (max-width: 1340px) {
     .dashboard-frame {
-        padding: 1rem;
+        gap: 2rem;
     }
-
-    .dashboard-side {
-        width: 315px;
-    }
-
-    .user-strip p {
-        font-size: 2rem;
-    }
-
-    .welcome-title {
-        font-size: 2.4rem;
-    }
-
-    .chat-entry {
-        min-height: 98px;
-        font-size: 2.8rem;
+    .service-grid {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
     }
 
     .service-card h3 {
-        font-size: 1.45rem;
+        margin: 0;
+        text-align: center;
+        font-size: .8rem;
+        color: #132f7d;
+        font-weight: 500;
     }
+    .invoice-table th {
+        min-width: 175px;
+        font-size:.9rem
+    }
+}
 
+@media (max-width: 1266px) {
     .today-strip {
-        font-size: 1.38rem;
-        min-height: 58px;
+        width: 35%;
     }
 }
 
@@ -377,15 +390,39 @@
         width: 100%;
     }
 
-    /*    .service-grid {
-        grid-template-columns: repeat(2, minmax(150px, 1fr));
-    }*/
+    .dashboard-main {
+        max-width: 100%;
+    }
+
+    .service-grid {
+        grid-template-columns: repeat(3, minmax(100px, 1fr));
+    }
+
+    .today-strip {
+        width: 25%;
+    }
 }
 
+@media (max-width: 914px) {
+    .today-strip {
+        width: 40%;
+    }
+    .invoice-table th {
+        font-size: .8rem;
+    }
+    
+}
+@media (max-width: 849px) {
+   .invoice-table th {
+        min-width: 140px;
+    }
+}
+
+
 @media (max-width: 760px) {
-    /*    .service-grid {
-        grid-template-columns: 1fr;
-    }*/
+    .service-grid {
+        grid-template-columns: repeat(2, minmax(70px, 1fr));
+    }
 
     .user-strip p {
         font-size: 1.45rem;
@@ -402,5 +439,39 @@
 
     .chat-entry {
         font-size: 1.55rem;
+    }
+    .table-scroll-container {
+        overflow-y: auto;
+        overflow-x: auto;
+       
+    }
+    .invoice-table th {
+        font-size: .7rem;
+    }
+}
+
+@media (max-width: 591px) {
+    .service-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .today-strip {
+        width: 50%;
+    }
+}
+
+@media (max-width: 484px) {
+    .header-dashboard {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .welcome-title {
+        font-size: 1rem;
+        margin: 1rem 0 1.2rem 0;
+    }
+
+    .today-strip {
+        width: 100%;
     }
 }
