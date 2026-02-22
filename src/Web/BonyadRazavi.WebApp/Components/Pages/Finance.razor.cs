@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
-using System.Text;
 using BonyadRazavi.Shared.Contracts.Companies;
 using BonyadRazavi.WebApp.Services;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.JSInterop;
@@ -188,56 +188,91 @@ public partial class Finance : ComponentBase
             return;
         }
 
-        var csv = BuildExcelCsv(_rows);
-        var bytes = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv);
+        var bytes = BuildExcelFile(_rows);
 
         await using var stream = new MemoryStream(bytes);
         using var streamReference = new DotNetStreamReference(stream);
 
-        var fileName = $"finance_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        var fileName = $"finance_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
         await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
     }
 
-    private static string BuildExcelCsv(IReadOnlyCollection<WorkflowRow> rows)
+    private static byte[] BuildExcelFile(IReadOnlyCollection<WorkflowRow> rows)
     {
-        var builder = new StringBuilder();
-        builder.AppendLine(string.Join(",",
-            EscapeCsv("شماره صورت حساب/رسید"),
-            EscapeCsv("تاریخ صورت حساب/رسید"),
-            EscapeCsv("رسید/صورت حساب"),
-            EscapeCsv("قرارداد"),
-            EscapeCsv("دفتر"),
-            EscapeCsv("مبلغ بدهکاری"),
-            EscapeCsv("مبلغ بستانکاری"),
-            EscapeCsv("مانده خطی"),
-            EscapeCsv("مانده تناوب")));
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("گردش حساب");
+        worksheet.RightToLeft = true;
 
+        var headers = new[]
+        {
+            "شماره صورت حساب/رسید",
+            "تاریخ صورت حساب/رسید",
+            "رسید/صورت حساب",
+            "قرارداد",
+            "دفتر",
+            "مبلغ بدهکاری",
+            "مبلغ بستانکاری",
+            "مانده خطی",
+            "مانده تناوب"
+        };
+
+        for (var columnIndex = 0; columnIndex < headers.Length; columnIndex++)
+        {
+            worksheet.Cell(1, columnIndex + 1).Value = headers[columnIndex];
+        }
+
+        var headerRange = worksheet.Range(1, 1, 1, headers.Length);
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E9ECFF");
+        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+        var rowIndex = 2;
         foreach (var row in rows)
         {
-            builder.AppendLine(string.Join(",",
-                EscapeCsv(row.BillNo.ToString(CultureInfo.InvariantCulture)),
-                EscapeCsv(FormatPersianDate(row.BillDate)),
-                EscapeCsv(row.TypeInvoice),
-                EscapeCsv(row.ContractsNo),
-                EscapeCsv(row.AgencyName),
-                EscapeCsv(FormatAmount(row.Debtor)),
-                EscapeCsv(FormatAmount(row.Creditor)),
-                EscapeCsv(FormatAmount(row.Remind)),
-                EscapeCsv(FormatAmount(row.Reminding))));
+            worksheet.Cell(rowIndex, 1).Value = row.BillNo;
+            worksheet.Cell(rowIndex, 2).Value = FormatPersianDate(row.BillDate);
+            worksheet.Cell(rowIndex, 3).Value = row.TypeInvoice;
+            worksheet.Cell(rowIndex, 4).Value = row.ContractsNo;
+            worksheet.Cell(rowIndex, 5).Value = row.AgencyName;
+            worksheet.Cell(rowIndex, 6).Value = row.Debtor;
+            worksheet.Cell(rowIndex, 7).Value = row.Creditor;
+            worksheet.Cell(rowIndex, 8).Value = row.Remind;
+            worksheet.Cell(rowIndex, 9).Value = row.Reminding;
+            rowIndex++;
         }
 
-        return builder.ToString();
-    }
-
-    private static string EscapeCsv(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
+        if (rows.Count > 0)
         {
-            return string.Empty;
+            worksheet.Cell(rowIndex, 1).Value = "جمع";
+            worksheet.Range(rowIndex, 1, rowIndex, 5).Merge();
+            worksheet.Cell(rowIndex, 6).FormulaA1 = $"SUM(F2:F{rowIndex - 1})";
+            worksheet.Cell(rowIndex, 7).FormulaA1 = $"SUM(G2:G{rowIndex - 1})";
+            worksheet.Cell(rowIndex, 8).Value = rows.Last().Remind;
+            worksheet.Cell(rowIndex, 9).Value = rows.Last().Reminding;
+
+            var totalRange = worksheet.Range(rowIndex, 1, rowIndex, 9);
+            totalRange.Style.Font.Bold = true;
+            totalRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#F2F4FF");
+            totalRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         }
 
-        var escapedValue = value.Replace("\"", "\"\"");
-        return $"\"{escapedValue}\"";
+        worksheet.Columns(6, 9).Style.NumberFormat.Format = "#,##0";
+
+        var usedRange = worksheet.RangeUsed();
+        if (usedRange is not null)
+        {
+            usedRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            usedRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        }
+
+        worksheet.Columns(1, 9).AdjustToContents();
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        return stream.ToArray();
     }
 
     private sealed class WorkflowRow
@@ -253,4 +288,3 @@ public partial class Finance : ComponentBase
         public string TypeInvoice { get; init; } = string.Empty;
     }
 }
-
