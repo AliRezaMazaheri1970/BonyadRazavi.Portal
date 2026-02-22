@@ -9,6 +9,10 @@ public interface ICompanyInvoiceReportService
         Guid companyCode,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyCollection<CompanyWorkflowDto>> GetWorkflowByCompanyAsync(
+        Guid companyCode,
+        CancellationToken cancellationToken = default);
+
     Task<CompanyInvoiceDocument?> GetInvoicePdfAsync(
         Guid companyCode,
         Guid masterBillCode,

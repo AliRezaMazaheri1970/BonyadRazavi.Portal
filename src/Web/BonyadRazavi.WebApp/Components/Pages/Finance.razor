@@ -1,0 +1,87 @@
+﻿@page "/finance"
+@using BonyadRazavi.WebApp.Components.Shared
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<section class="portal-dashboard">
+    <div class="dashboard-frame">
+        <DashboardSidebar />
+
+        <main class="dashboard-main">
+            <div class="workflow-panel">
+                <div class="workflow-header">
+                    <h3 class="title-page">گردش حساب</h3>
+
+                    <div class="workflow-actions">
+                        <button class="btn-export" @onclick="ExportToExcelAsync" disabled="@(_isLoading || _rows.Count == 0)">
+                            خروجی اکسل
+                        </button>
+                        <button class="btn-refresh" @onclick="LoadWorkflowAsync" disabled="@_isLoading">
+                            @(_isLoading ? "در حال بارگذاری..." : "به‌روزرسانی")
+                        </button>
+                        <button class="btn-dashboard" @onclick="GoToDashboard">
+                            <img class="icon-dashboard" src="Images/dashboard/dashboard.png" />
+                            <span>داشبورد</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-scroll-container">
+                    <table class="workflow-table">
+                        <thead>
+                            <tr>
+                                <th>شماره صورت حساب/رسید</th>
+                                <th>تاریخ صورت حساب/رسید</th>
+                                <th>رسید/صورت حساب</th>
+                                <th>قرارداد</th>
+                                <th>دفتر</th>
+                                <th>مبلغ بدهکاری</th>
+                                <th>مبلغ بستانکاری</th>
+                                <th>مانده خطی</th>
+                                <th>مانده تناوب</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_isLoading)
+                            {
+                                <tr>
+                                    <td colspan="9" class="state-cell">در حال بارگذاری...</td>
+                                </tr>
+                            }
+                            else if (_rows.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="9" class="state-cell">@(_errorMessage ?? "گردش حسابی برای نمایش وجود ندارد.")</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _rows)
+                                {
+                                    <tr>
+                                        <td>@row.BillNo</td>
+                                        <td>@FormatPersianDate(row.BillDate)</td>
+                                        <td>@row.TypeInvoice</td>
+                                        <td>@row.ContractsNo</td>
+                                        <td>@row.AgencyName</td>
+                                        <td class="amount-cell">@FormatAmount(row.Debtor)</td>
+                                        <td class="amount-cell">@FormatAmount(row.Creditor)</td>
+                                        <td class="amount-cell">@FormatAmount(row.Remind)</td>
+                                        <td class="amount-cell">@FormatAmount(row.Reminding)</td>
+                                    </tr>
+                                }
+
+                                <tr class="totals-row">
+                                    <td colspan="5">جمع</td>
+                                    <td class="amount-cell">@FormatAmount(_totalDebtor)</td>
+                                    <td class="amount-cell">@FormatAmount(_totalCreditor)</td>
+                                    <td class="amount-cell">@FormatAmount(_lastLineBalance)</td>
+                                    <td class="amount-cell">@FormatAmount(_lastPeriodicBalance)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</section>

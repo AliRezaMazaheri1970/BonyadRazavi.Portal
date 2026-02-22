@@ -193,6 +193,41 @@ public sealed class CompaniesController : ControllerBase
         return Ok(invoices);
     }
 
+    [HttpGet("workflow")]
+    [ProducesResponseType<IReadOnlyCollection<CompanyWorkflowDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyCollection<CompanyWorkflowDto>>> GetCompanyWorkflow(
+        CancellationToken cancellationToken = default)
+    {
+        if (!TenantContextResolver.TryGetCompanyCode(User, out var actorCompanyCode))
+        {
+            return await ForbidWithSecurityLogAsync(
+                "MissingCompanyClaim",
+                new Dictionary<string, object?>
+                {
+                    ["attemptedAction"] = "Companies.ReadWorkflow"
+                },
+                cancellationToken);
+        }
+
+        var workflowRows = await _companyInvoiceReportService.GetWorkflowByCompanyAsync(
+            actorCompanyCode,
+            cancellationToken);
+
+        await _userActionLogService.LogAsync(
+            RequestAuditMetadataFactory.ResolveAuthenticatedUserId(User),
+            AuditActionTypes.ViewReport,
+            RequestAuditMetadataFactory.Create(HttpContext, new Dictionary<string, object?>
+            {
+                ["scope"] = "Workflow",
+                ["companyCode"] = actorCompanyCode,
+                ["resultCount"] = workflowRows.Count
+            }),
+            cancellationToken);
+
+        return Ok(workflowRows);
+    }
+
     [HttpGet("invoices/{masterBillCode:guid}/pdf")]
     [Produces("application/pdf")]
     [ProducesResponseType(StatusCodes.Status200OK)]

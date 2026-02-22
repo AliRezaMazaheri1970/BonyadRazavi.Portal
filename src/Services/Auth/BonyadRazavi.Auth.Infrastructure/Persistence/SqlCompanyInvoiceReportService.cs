@@ -3,6 +3,7 @@ using BonyadRazavi.Auth.Application.Abstractions;
 using BonyadRazavi.Auth.Application.Models;
 using BonyadRazavi.Shared.Contracts.Companies;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -13,6 +14,7 @@ namespace BonyadRazavi.Auth.Infrastructure.Persistence;
 public sealed class SqlCompanyInvoiceReportService : ICompanyInvoiceReportService
 {
     private static readonly CultureInfo PersianCulture = new("fa-IR");
+    private static readonly DateTime WorkflowDefaultDate = new(1900, 1, 1);
 
     private readonly string _connectionString;
     private readonly ILogger<SqlCompanyInvoiceReportService> _logger;
@@ -30,6 +32,15 @@ public sealed class SqlCompanyInvoiceReportService : ICompanyInvoiceReportServic
         _connectionString = connectionString;
         _logger = logger;
         _logoBytes = ResolveLogoBytes();
+    }
+
+    private LaboratoryRasfReadDbContext CreateLaboratoryRasfReadDbContext()
+    {
+        var options = new DbContextOptionsBuilder<LaboratoryRasfReadDbContext>()
+            .UseSqlServer(_connectionString)
+            .Options;
+
+        return new LaboratoryRasfReadDbContext(options);
     }
 
     public async Task<IReadOnlyCollection<CompanyInvoiceDto>> GetInvoicesByCompanyAsync(
@@ -94,6 +105,236 @@ public sealed class SqlCompanyInvoiceReportService : ICompanyInvoiceReportServic
             _logger.LogWarning(
                 exception,
                 "Failed to load invoices for CompanyCode {CompanyCode} from LaboratoryRASF.",
+                companyCode);
+            return [];
+        }
+    }
+
+    public async Task<IReadOnlyCollection<CompanyWorkflowDto>> GetWorkflowByCompanyAsync(
+        Guid companyCode,
+        CancellationToken cancellationToken = default)
+    {
+        if (companyCode == Guid.Empty)
+        {
+            return [];
+        }
+
+        try
+        {
+            await using var dbContext = CreateLaboratoryRasfReadDbContext();
+
+            var invoiceBaseRows = await (
+                    from mb in dbContext.MasterBills.AsNoTracking()
+                    join cb in dbContext.ContractsBase.AsNoTracking() on mb.ContractCode equals cb.ContractsCode
+                    join cf in dbContext.ContractsFinancial.AsNoTracking() on cb.ContractsCode equals cf.ContractCode
+                    where mb.IsVoid == 0
+                          && mb.InformalFactor == false
+                          && cb.CompanyInvoice == companyCode
+                          && cf.FinacialSupport == true
+                    select new
+                    {
+                        ContractCode = cb.ContractsCode,
+                        cb.ContractNo,
+                        cb.OfficesCode,
+                        mb.BillNo,
+                        mb.BillDate
+                    })
+                .ToListAsync(cancellationToken);
+
+            var contractCodes = invoiceBaseRows
+                .Select(row => row.ContractCode)
+                .Distinct()
+                .ToArray();
+
+            var officeCodes = invoiceBaseRows
+                .Select(row => row.OfficesCode)
+                .Where(code => code.HasValue)
+                .Select(code => code!.Value)
+                .Distinct()
+                .ToArray();
+
+            Dictionary<Guid, string> agencyByOfficeCode = [];
+            if (officeCodes.Length > 0)
+            {
+                agencyByOfficeCode = await dbContext.CompaniesAgency
+                    .AsNoTracking()
+                    .Where(row => officeCodes.Contains(row.AgencyCode))
+                    .GroupBy(row => row.AgencyCode)
+                    .Select(group => new
+                    {
+                        OfficeCode = group.Key,
+                        AgencyName = group.Select(item => item.AgencyName).FirstOrDefault()
+                    })
+                    .ToDictionaryAsync(
+                        item => item.OfficeCode,
+                        item => item.AgencyName ?? string.Empty,
+                        cancellationToken);
+            }
+
+            Dictionary<Guid, long> debtorByContractCode = [];
+            if (contractCodes.Length > 0)
+            {
+                debtorByContractCode = await dbContext.ContractsRemindView
+                    .AsNoTracking()
+                    .Where(row => contractCodes.Contains(row.ContractsCode))
+                    .GroupBy(row => row.ContractsCode)
+                    .Select(group => new
+                    {
+                        ContractCode = group.Key,
+                        Debtor = group.Select(item => item.Debtor).FirstOrDefault()
+                    })
+                    .ToDictionaryAsync(
+                        item => item.ContractCode,
+                        item => item.Debtor ?? 0,
+                        cancellationToken);
+            }
+
+            var invoiceRows = invoiceBaseRows.Select(row => new
+            {
+                row.BillNo,
+                row.BillDate,
+                Debtor = debtorByContractCode.TryGetValue(row.ContractCode, out var debtor) ? debtor : 0,
+                row.ContractNo,
+                AgencyName = row.OfficesCode.HasValue
+                    && agencyByOfficeCode.TryGetValue(row.OfficesCode.Value, out var agencyName)
+                    ? agencyName
+                    : string.Empty
+            }).ToList();
+
+            var receiptRows = await (
+                    from rm in dbContext.ReceiptAmountMaster.AsNoTracking()
+                    where rm.IsVoid == 0
+                          && rm.IsInformalReceipt == false
+                          && rm.CompaniesCode == companyCode
+                          && dbContext.ReceiptAmountDetail.AsNoTracking().Any(rd =>
+                              rd.ReceiptMasterCode == rm.ReceiptAmountMasterCode
+                              && rd.ParentReceipt == null)
+                    select new
+                    {
+                        rm.ReceiptAmountMasterCode,
+                        rm.ReceiptNo,
+                        rm.ReceiptDate,
+                        rm.Amount,
+                        rm.HowToPay
+                    })
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            Dictionary<Guid, string> receiptContractsByMasterCode = [];
+            var receiptMasterCodes = receiptRows
+                .Select(row => row.ReceiptAmountMasterCode)
+                .Distinct()
+                .ToArray();
+            if (receiptMasterCodes.Length > 0)
+            {
+                var receiptContracts = await (
+                        from rv in dbContext.ReceiptsOfFundsView.AsNoTracking()
+                        where receiptMasterCodes.Contains(rv.ReceiptMasterCode)
+                        group rv by new { rv.ReceiptMasterCode, rv.ContractNo } into grouped
+                        where grouped.Sum(item => item.Amount ?? 0) > 0
+                        select new
+                        {
+                            grouped.Key.ReceiptMasterCode,
+                            grouped.Key.ContractNo
+                        })
+                    .ToListAsync(cancellationToken);
+
+                receiptContractsByMasterCode = receiptContracts
+                    .Where(item => item.ContractNo.HasValue)
+                    .GroupBy(item => item.ReceiptMasterCode)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => string.Join(",", group
+                            .Select(item => item.ContractNo!.Value.ToString(CultureInfo.InvariantCulture))
+                            .Distinct(StringComparer.Ordinal)));
+            }
+
+            var paymentRows = await (
+                    from pm in dbContext.PaymentAmountMaster.AsNoTracking()
+                    where pm.CompaniesCode == companyCode
+                          && pm.IsVoid == 0
+                          && pm.IsInformalPayments == false
+                    select new
+                    {
+                        pm.PaymentNo,
+                        pm.PaymentDate,
+                        pm.Amount
+                    })
+                .ToListAsync(cancellationToken);
+
+            var rawRows = new List<CompanyWorkflowRawRow>(invoiceRows.Count + receiptRows.Count + paymentRows.Count);
+
+            rawRows.AddRange(invoiceRows.Select(row => new CompanyWorkflowRawRow(
+                row.BillNo ?? 0,
+                row.BillDate ?? WorkflowDefaultDate,
+                row.Debtor,
+                0,
+                row.ContractNo.HasValue ? row.ContractNo.Value.ToString(CultureInfo.InvariantCulture) : "-",
+                row.AgencyName ?? string.Empty,
+                "صورت حساب")));
+
+            rawRows.AddRange(receiptRows.Select(row =>
+            {
+                var contractsNo = receiptContractsByMasterCode.TryGetValue(row.ReceiptAmountMasterCode, out var value)
+                    ? value
+                    : "-";
+                if (string.IsNullOrWhiteSpace(contractsNo))
+                {
+                    contractsNo = "-";
+                }
+
+                return new CompanyWorkflowRawRow(
+                    row.ReceiptNo ?? 0,
+                    row.ReceiptDate ?? WorkflowDefaultDate,
+                    0,
+                    row.Amount ?? 0,
+                    contractsNo,
+                    string.Empty,
+                    ResolveReceiptTypeInvoice(row.HowToPay));
+            }));
+
+            rawRows.AddRange(paymentRows.Select(row => new CompanyWorkflowRawRow(
+                row.PaymentNo ?? 0,
+                row.PaymentDate ?? WorkflowDefaultDate,
+                row.Amount ?? 0,
+                0,
+                "0",
+                string.Empty,
+                "پرداختی")));
+
+            rawRows = rawRows
+                .OrderBy(row => row.BillDate)
+                .ThenBy(row => row.BillNo)
+                .ToList();
+
+            var result = new List<CompanyWorkflowDto>(rawRows.Count);
+            long runningBalance = 0;
+            foreach (var row in rawRows)
+            {
+                var remind = row.Debtor - row.Creditor;
+                runningBalance += remind;
+
+                result.Add(new CompanyWorkflowDto
+                {
+                    BillNo = row.BillNo,
+                    BillDate = row.BillDate,
+                    Debtor = row.Debtor,
+                    Creditor = row.Creditor,
+                    Remind = remind,
+                    Reminding = runningBalance,
+                    ContractsNo = row.ContractsNo,
+                    AgencyName = row.AgencyName,
+                    TypeInvoice = row.TypeInvoice
+                });
+            }
+
+            return result;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Failed to load workflow rows for CompanyCode {CompanyCode} from LaboratoryRASF.",
                 companyCode);
             return [];
         }
@@ -639,6 +880,25 @@ public sealed class SqlCompanyInvoiceReportService : ICompanyInvoiceReportServic
         return Convert.ToDecimal(reader.GetValue(index), CultureInfo.InvariantCulture);
     }
 
+    private static string ResolveReceiptTypeInvoice(int? howToPay)
+    {
+        return howToPay switch
+        {
+            1 => "نقد",
+            2 => "چک",
+            3 => "حواله",
+            4 => "فیش مالیاتی",
+            9 => "کسر از کارمزد",
+            10 => "بیمه",
+            11 => "سوخت شده",
+            12 => "تهاتر",
+            13 => "تخفیف ایران مواد",
+            14 => "تخفیف به مشتری",
+            16 => "گرنت",
+            _ => "نامشخص"
+        };
+    }
+
     private static string FormatAmount(decimal value)
     {
         var rounded = decimal.Round(value, 0, MidpointRounding.AwayFromZero);
@@ -706,6 +966,15 @@ public sealed class SqlCompanyInvoiceReportService : ICompanyInvoiceReportServic
         decimal TotalPrice,
         string ContractNo);
 
+    private readonly record struct CompanyWorkflowRawRow(
+        int BillNo,
+        DateTime BillDate,
+        long Debtor,
+        long Creditor,
+        string ContractsNo,
+        string AgencyName,
+        string TypeInvoice);
+
     private readonly record struct InvoiceContractInfo(
         string CompanyName,
         string Address,
@@ -759,3 +1028,4 @@ public sealed class SqlCompanyInvoiceReportService : ICompanyInvoiceReportServic
                 "02146841121 و 02149732");
     }
 }
+

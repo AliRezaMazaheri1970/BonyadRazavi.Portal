@@ -160,6 +160,26 @@ public sealed class UsersApiClient
         return CompanyInvoicesApiResult.Failed(message, (int)response.StatusCode);
     }
 
+    public async Task<CompanyWorkflowApiResult> GetCompanyWorkflowAsync(
+        string accessToken,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = CreateAuthorizedJsonRequest(HttpMethod.Get, "api/companies/workflow", accessToken);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var rows = await response.Content.ReadFromJsonAsync<List<CompanyWorkflowDto>>(cancellationToken);
+            return CompanyWorkflowApiResult.Succeeded(rows ?? []);
+        }
+
+        var message = await ReadFailureMessageAsync(
+            response,
+            "دریافت گردش حساب ناموفق بود.",
+            cancellationToken);
+        return CompanyWorkflowApiResult.Failed(message, (int)response.StatusCode);
+    }
+
     public async Task<InvoicePdfApiResult> DownloadCompanyInvoicePdfAsync(
         string accessToken,
         Guid masterBillCode,

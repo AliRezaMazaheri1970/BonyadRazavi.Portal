@@ -62,6 +62,19 @@ public sealed record CompanyInvoicesApiResult(
         new(false, [], errorMessage, statusCode);
 }
 
+public sealed record CompanyWorkflowApiResult(
+    bool IsSuccess,
+    IReadOnlyList<CompanyWorkflowDto> Rows,
+    string? ErrorMessage,
+    int? StatusCode)
+{
+    public static CompanyWorkflowApiResult Succeeded(IReadOnlyList<CompanyWorkflowDto> rows) =>
+        new(true, rows, null, null);
+
+    public static CompanyWorkflowApiResult Failed(string errorMessage, int? statusCode = null) =>
+        new(false, [], errorMessage, statusCode);
+}
+
 public sealed record InvoicePdfApiResult(
     bool IsSuccess,
     byte[] FileBytes,

@@ -250,6 +250,13 @@ public sealed class CompaniesControllerSecurityTests
             return Task.FromResult<IReadOnlyCollection<CompanyInvoiceDto>>([]);
         }
 
+        public Task<IReadOnlyCollection<CompanyWorkflowDto>> GetWorkflowByCompanyAsync(
+            Guid companyCode,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyCollection<CompanyWorkflowDto>>([]);
+        }
+
         public Task<CompanyInvoiceDocument?> GetInvoicePdfAsync(
             Guid companyCode,
             Guid masterBillCode,
