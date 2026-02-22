@@ -8,12 +8,13 @@ namespace BonyadRazavi.WebApp.Components.Pages
 
         private static readonly DashboardTile[] DashboardTiles =
         [
-            new("دریافت گزارش و صورتحساب", "Images/dashboard/reports.png", "/Receive-reports-invoices"),
-            new("پیگیری مرحله آزمایش", "Images/dashboard/lab.png", "/lab-tracking"),
-            new("اعلام هزینه", "Images/dashboard/cost.png", "/cost"),
-            new("شکایت", "Images/dashboard/complaint.png", "/complaint"),
-            new("نظرسنجی", "Images/dashboard/survey.png", "/survey"),
+            new("صورتحساب های صادر شده", "Images/dashboard/invoice.png", "/invoices-issued"),
             new("وضعیت مالی", "Images/dashboard/finance.png", "/finance"),
+            new("دریافت گزارشات", "Images/dashboard/reports.png", "/receive-reports"),
+            new("اعلام هزینه", "Images/dashboard/cost.png", "/cost"),
+            new("پیگیری مرحله آزمایش", "Images/dashboard/lab.png", "/lab-tracking"),
+            //new("شکایت", "Images/dashboard/complaint.png", "/complaint"),
+            new("نظرسنجی", "Images/dashboard/survey.png", "/survey"),
             new("ارسال اطلاعات", "Images/dashboard/SendInformation.png", "/cost"),
             new("ارسال لینک یکبار مصرف توسط پیامک", "Images/dashboard/sms.png", "/complaint"),
             new("چت آنلاین", "Images/dashboard/chat-online.png", "/survey"),

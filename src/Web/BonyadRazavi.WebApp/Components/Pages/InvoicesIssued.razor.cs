@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace BonyadRazavi.WebApp.Components.Pages;
 
-public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
+public partial class InvoicesIssued : ComponentBase, IDisposable
 {
     private static readonly TimeSpan TokenRefreshSkew = TimeSpan.FromSeconds(30);
 
@@ -38,7 +38,7 @@ public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
     private bool isAscending = true;
     private bool _isLoading;
     private string? _errorMessage;
-    private DotNetObjectReference<ReceiveReportsInvoices>? dotNetRef;
+    private DotNetObjectReference<InvoicesIssued>? dotNetRef;
 
     protected override async Task OnInitializedAsync()
     {
