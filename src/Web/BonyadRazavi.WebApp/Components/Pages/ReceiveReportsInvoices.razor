@@ -76,7 +76,8 @@
                                     <tr>
                                         <td>@item.InvoiceName</td>
                                         <td>@item.ContractNumber</td>
-                                        <td>@item.InvoiceDate.ToString("yyyy/MM/dd")</td>
+                                        @* <td>@item.InvoiceDate.ToString("yyyy/MM/dd")</td> *@
+                                        <td>@ToPersianDate(item.InvoiceDate)</td>
                                         <td>@item.TotalPrice.ToString("N0") ریال</td>
                                         <td><button class="btn-download" @onclick="() => DownloadInvoice(item)">دانلود ↓</button></td>
                                     </tr>

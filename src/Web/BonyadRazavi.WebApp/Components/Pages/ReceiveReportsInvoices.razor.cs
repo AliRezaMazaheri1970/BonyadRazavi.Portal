@@ -3,6 +3,7 @@ using BonyadRazavi.WebApp.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.JSInterop;
+using System.Globalization;
 
 namespace BonyadRazavi.WebApp.Components.Pages;
 
@@ -22,6 +23,8 @@ public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
         public string InvoiceName { get; set; } = string.Empty;
         public DateTime InvoiceDate { get; set; }
         public string ContractNumber { get; set; } = string.Empty;
+        public long? InvoiceNumber { get; set; }
+        public long? ContractNumberNumeric { get; set; }
         public decimal TotalPrice { get; set; }
     }
 
@@ -74,49 +77,98 @@ public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
         StateHasChanged();
     }
 
+    //private IEnumerable<Invoice> FilteredAndSortedInvoices
+    //{
+    //    get
+    //    {
+    //        var query = invoices.AsQueryable();
+
+    //        if (!string.IsNullOrWhiteSpace(searchName))
+    //        {
+    //            query = query.Where(i => i.InvoiceName.Contains(searchName, StringComparison.OrdinalIgnoreCase));
+    //        }
+
+    //        if (!string.IsNullOrWhiteSpace(searchContract))
+    //        {
+    //            query = query.Where(i => i.ContractNumber.Contains(searchContract, StringComparison.OrdinalIgnoreCase));
+    //        }
+
+    //        if (!string.IsNullOrWhiteSpace(searchFromDate))
+    //        {
+    //            query = query.Where(i =>
+    //                string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchFromDate, StringComparison.Ordinal) >= 0);
+    //        }
+
+    //        if (!string.IsNullOrWhiteSpace(searchToDate))
+    //        {
+    //            query = query.Where(i =>
+    //                string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchToDate, StringComparison.Ordinal) <= 0);
+    //        }
+
+    //        if (searchTotalPrice.HasValue && searchTotalPrice.Value > 0)
+    //        {
+    //            query = query.Where(i => i.TotalPrice >= searchTotalPrice.Value);
+    //        }
+
+    //        if (!string.IsNullOrEmpty(sortColumn))
+    //        {
+    //            query = sortColumn switch
+    //            {
+    //                "Name" => isAscending ? query.OrderBy(i => i.InvoiceName) : query.OrderByDescending(i => i.InvoiceName),
+    //                "Date" => isAscending ? query.OrderBy(i => i.InvoiceDate) : query.OrderByDescending(i => i.InvoiceDate),
+    //                "Contract" => isAscending
+    //                    ? query.OrderBy(i => i.ContractNumber)
+    //                    : query.OrderByDescending(i => i.ContractNumber),
+    //                "Price" => isAscending ? query.OrderBy(i => i.TotalPrice) : query.OrderByDescending(i => i.TotalPrice),
+    //                _ => query
+    //            };
+    //        }
+
+    //        return query.ToList();
+    //    }
+    //}
+
+
     private IEnumerable<Invoice> FilteredAndSortedInvoices
     {
         get
         {
             var query = invoices.AsQueryable();
 
+            // فیلترهای جستجو (همچنان روی فیلدهای رشته‌ای)
             if (!string.IsNullOrWhiteSpace(searchName))
-            {
                 query = query.Where(i => i.InvoiceName.Contains(searchName, StringComparison.OrdinalIgnoreCase));
-            }
 
             if (!string.IsNullOrWhiteSpace(searchContract))
-            {
                 query = query.Where(i => i.ContractNumber.Contains(searchContract, StringComparison.OrdinalIgnoreCase));
-            }
 
+            // فیلتر تاریخ (با تبدیل به شمسی)
             if (!string.IsNullOrWhiteSpace(searchFromDate))
-            {
-                query = query.Where(i =>
-                    string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchFromDate, StringComparison.Ordinal) >= 0);
-            }
-
+                query = query.Where(i => string.Compare(ToPersianDate(i.InvoiceDate), searchFromDate, StringComparison.Ordinal) >= 0);
             if (!string.IsNullOrWhiteSpace(searchToDate))
-            {
-                query = query.Where(i =>
-                    string.Compare(i.InvoiceDate.ToString("yyyy/MM/dd"), searchToDate, StringComparison.Ordinal) <= 0);
-            }
+                query = query.Where(i => string.Compare(ToPersianDate(i.InvoiceDate), searchToDate, StringComparison.Ordinal) <= 0);
 
-            if (searchTotalPrice.HasValue && searchTotalPrice.Value > 0)
-            {
+            // فیلتر قیمت
+            if (searchTotalPrice.HasValue)
                 query = query.Where(i => i.TotalPrice >= searchTotalPrice.Value);
-            }
 
+            // مرتب‌سازی (با استفاده از فیلدهای عددی)
             if (!string.IsNullOrEmpty(sortColumn))
             {
                 query = sortColumn switch
                 {
-                    "Name" => isAscending ? query.OrderBy(i => i.InvoiceName) : query.OrderByDescending(i => i.InvoiceName),
-                    "Date" => isAscending ? query.OrderBy(i => i.InvoiceDate) : query.OrderByDescending(i => i.InvoiceDate),
+                    "Name" => isAscending
+                        ? query.OrderBy(i => i.InvoiceNumber ?? long.MaxValue)
+                        : query.OrderByDescending(i => i.InvoiceNumber ?? long.MaxValue),
                     "Contract" => isAscending
-                        ? query.OrderBy(i => i.ContractNumber)
-                        : query.OrderByDescending(i => i.ContractNumber),
-                    "Price" => isAscending ? query.OrderBy(i => i.TotalPrice) : query.OrderByDescending(i => i.TotalPrice),
+                        ? query.OrderBy(i => i.ContractNumberNumeric ?? long.MaxValue)
+                        : query.OrderByDescending(i => i.ContractNumberNumeric ?? long.MaxValue),
+                    "Date" => isAscending
+                        ? query.OrderBy(i => i.InvoiceDate)
+                        : query.OrderByDescending(i => i.InvoiceDate),
+                    "Price" => isAscending
+                        ? query.OrderBy(i => i.TotalPrice)
+                        : query.OrderByDescending(i => i.TotalPrice),
                     _ => query
                 };
             }
@@ -218,14 +270,17 @@ public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
 
     private static Invoice MapInvoice(CompanyInvoiceDto invoice)
     {
+        long.TryParse(invoice.BillNo, out long invoiceNumber);
+        long.TryParse(invoice.ContractNo, out long contractNumber);
+
         return new Invoice
         {
             MasterBillCode = invoice.MasterBillCode,
             InvoiceName = invoice.BillNo,
+            InvoiceNumber = invoiceNumber == 0 ? null : invoiceNumber, // صفر به‌عنوان مقدار معتبر در نظر گرفته نشود (اختیاری)
             InvoiceDate = invoice.BillDate,
-            ContractNumber = string.IsNullOrWhiteSpace(invoice.ContractNo)
-                ? "-"
-                : invoice.ContractNo,
+            ContractNumber = string.IsNullOrWhiteSpace(invoice.ContractNo) ? "-" : invoice.ContractNo,
+            ContractNumberNumeric = contractNumber == 0 ? null : contractNumber,
             TotalPrice = invoice.TotalPrice
         };
     }
@@ -247,10 +302,9 @@ public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
     {
         if (sortColumn != column)
         {
-            return "â†•";
+            return "↕"; 
         }
-
-        return isAscending ? "â†‘" : "â†“";
+        return isAscending ? "↓" :  "↑";
     }
 
     private void GoToDashboard()
@@ -319,5 +373,14 @@ public partial class ReceiveReportsInvoices : ComponentBase, IDisposable
         using var stream = new MemoryStream(result.FileBytes);
         using var streamRef = new DotNetStreamReference(stream: stream);
         await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+
     }
+
+
+    private string ToPersianDate(DateTime gregorianDate)
+    {
+        PersianCalendar pc = new PersianCalendar();
+        return $"{pc.GetYear(gregorianDate):0000}/{pc.GetMonth(gregorianDate):00}/{pc.GetDayOfMonth(gregorianDate):00}";
+    }
+
 }
